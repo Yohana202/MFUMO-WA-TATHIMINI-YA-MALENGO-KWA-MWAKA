@@ -30,33 +30,32 @@
                 <li class="nav-item" onclick="switchSection('weekly-progress', this)">
                     <i class="fa-solid fa-calendar-week"></i> <span>Progress ya Wiki</span>
                 </li>
-                                <li class="nav-item" onclick="switchSection('reports', this)">
+                <li class="nav-item" onclick="switchSection('reports', this)">
                     <i class="fa-solid fa-file-invoice"></i> <span>Ripoti & Tathmini</span>
                 </li>
                 <li class="nav-item" onclick="switchSection('finance-summary', this)">
                     <i class="fa-solid fa-wallet"></i> <span>Taarifa za Fedha</span>
                 </li>
-
-
             </ul>
         </aside>
 
         <!-- MAIN CONTENT -->
         <main class="main-content">
-            <header class="top-header">
-                <h1 id="page-title">Dashboard ya Malengo</h1>
-                <div class="year-selector">
-                    <label>Mwaka:</label>
-                    <select id="selected-year" onchange="changeYear()">
-                        <option value="2026">2026</option>
-                        <option value="2027">2027</option>
-                        <option value="2028">2028</option>
-                    </select>
-                </div>
-            </header>
 
             <!-- 1. DASHBOARD -->
             <section id="dashboard" class="content-section active">
+                <header class="top-header">
+                    <h1 id="page-title">Dashboard ya Malengo</h1>
+                    <div class="year-selector">
+                        <label>Mwaka:</label>
+                        <select id="selected-year" onchange="changeYear()">
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                        </select>
+                    </div>
+                </header>
+
                 <div class="cards-grid">
                     <div class="card">
                         <div class="card-info">
@@ -88,50 +87,54 @@
                     </div>
                 </div>
 
-                <div class="goals-overview-container">
-                    <h3>Maendeleo ya Malengo Yote (Mwaka Husika)</h3>
-                    <div id="dashboard-goals-list">
-                        <!-- Goal cards zitajazwa hapa na JS -->
-                    </div>
+                <div class="form-container" style="margin-top: 20px;">
+                    <h3>Muhtasari wa Malengo</h3>
+                    <div id="dashboard-goals-list"></div>
                 </div>
             </section>
 
             <!-- 2. MALENGO YA MWAKA -->
             <section id="goals" class="content-section">
+                <div class="top-header">
+                    <h2>Usimamizi wa Malengo ya Mwaka</h2>
+                </div>
+
                 <div class="form-container">
-                    <h3>Sajili Lengo Jipya la Familia</h3>
+                    <h3>Sajili Lengo Kuu Jipya</h3>
                     <form id="goal-form">
                         <div class="form-group">
                             <label>Jina la Lengo Kuu</label>
-                            <input type="text" id="goal-title" placeholder="mf. Ujenzi wa Nyumba, Nunua Shamba" required>
+                            <input type="text" id="goal-title" required placeholder="Mf. Kujenga Nyumba, Kununua Shamba...">
                         </div>
                         <div class="form-group">
-                            <label>Maelezo Mfupi / Lengo la Maadili</label>
-                            <input type="text" id="goal-desc" placeholder="Maelezo ya ziada">
+                            <label>Maelezo ya Lengo</label>
+                            <input type="text" id="goal-desc" placeholder="Maelezo mafupi kuhusu lengo hili">
                         </div>
                         <div class="form-group">
-                            <label>Bajeti Inayokadiriwa (TZS)</label>
-                            <input type="number" id="goal-budget" placeholder="0.00">
+                            <label>Bajeti Inayohitajika (TZS)</label>
+                            <input type="number" id="goal-budget" placeholder="0">
                         </div>
                         <button type="submit" class="btn btn-primary">Hifadhi Lengo Kuu</button>
                     </form>
                 </div>
 
-                <div class="goals-management-list" id="goals-management-container">
-                    <!-- Structure ya kuongeza Sub-goals zitajazwa hapa -->
+                <div class="form-container" style="margin-top: 20px;">
+                    <h3>Orodha ya Malengo na Sub-Goals</h3>
+                    <div id="goals-management-list"></div>
                 </div>
             </section>
 
-            <!-- 3. PROGRESS YA KILA WIKI -->
+            <!-- 3. PROGRESS YA WIKI -->
             <section id="weekly-progress" class="content-section">
+                <div class="top-header">
+                    <h2>Jaza Progress ya Wiki</h2>
+                </div>
+
                 <div class="form-container">
-                    <h3>Ingiza Progress ya Wiki</h3>
                     <form id="weekly-form">
                         <div class="form-group">
                             <label>Chagua Lengo Dogo (Sub-Goal)</label>
-                            <select id="weekly-subgoal-select" required>
-                                <option value="">Chagua Lengo Dogo...</option>
-                            </select>
+                            <select id="weekly-subgoal-select" required></select>
                         </div>
                         <div class="form-group">
                             <label>Mwezi</label>
@@ -161,96 +164,81 @@
                         </div>
                         <div class="form-group">
                             <label>Asilimia ya Maendeleo Zilizofikiwa Sasa (%)</label>
-                            <input type="number" id="weekly-pct" min="0" max="100" placeholder="0-100" required>
+                            <input type="number" id="weekly-pct" min="0" max="100" required placeholder="0 - 100">
                         </div>
                         <div class="form-group">
                             <label>Taarifa / Hatua Zilizopigwa Wiki Hii</label>
-                            <input type="text" id="weekly-notes" placeholder="mf. Tumekamilisha kununua mifuko 50 ya saruji" required>
+                            <input type="text" id="weekly-notes" placeholder="Mf. Tumekamilisha msingi wa nyumba">
                         </div>
-                        <button type="submit" class="btn btn-success">Hifadhi Progress ya Wiki</button>
+                        <button type="submit" class="btn btn-success">Hifadhi Taarifa ya Wiki</button>
                     </form>
                 </div>
             </section>
 
             <!-- 4. RIPOTI NA TATHMINI -->
             <section id="reports" class="content-section">
-                <div class="filter-box">
-                    <button class="btn btn-primary" onclick="generateReport('term1')">Ripoti Term 1 (Jan-Jun)</button>
-                    <button class="btn btn-primary" onclick="generateReport('term2')">Ripoti Term 2 (Jul-Dis)</button>
-                    <button class="btn btn-success" onclick="generateReport('yearly')">Ripoti ya Mwaka Mzima</button>
-                    <button class="btn btn-secondary" onclick="downloadPDF()"><i class="fa-solid fa-file-pdf"></i> Pakua PDF</button>
+                <div class="top-header">
+                    <h2>Ripoti ya Tathmini ya Malengo</h2>
                 </div>
-                            <!-- 5. TAARIFA ZA FEDHA -->
-<section id="finance-summary" class="content-section">
-    <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <h2>Muhtasari wa Mfumo wa Fedha</h2>
-        <button class="btn btn-primary" onclick="syncFinanceData()">
-            <i class="fa-solid fa-rotate"></i> Vuta Data za Fedha
-        </button>
-    </div>
+                <div class="filter-box">
+                    <button class="btn btn-primary" onclick="generateReport('term1')">Ripoti Term 1</button>
+                    <button class="btn btn-primary" onclick="generateReport('term2')">Ripoti Term 2</button>
+                    <button class="btn btn-success" onclick="generateReport('yearly')">Ripoti ya Mwaka Mzima</button>
+                    <button class="btn btn-secondary" onclick="downloadPDF()"><i class="fa-solid fa-download"></i> Pakua PDF</button>
+                </div>
+                <div id="printable-area" class="form-container" style="margin-top: 20px;">
+                    <h3 id="report-title">Ripoti ya Tathmini ya Malengo</h3>
+                    <p id="report-subtitle" style="color: #666; margin-bottom: 15px;"></p>
+                    <div id="report-content"></div>
+                </div>
+            </section>
 
-    <div class="cards-grid">
-        <div class="card">
-            <div class="card-info">
-                <p>Jumla ya Mapato</p>
-                <h3 id="fin-total-income" style="color: #16a34a;">TZS 0</h3>
-            </div>
-            <i class="fa-solid fa-money-bill-wave card-icon green"></i>
-        </div>
-        <div class="card">
-            <div class="card-info">
-                <p>Jumla ya Matumizi</p>
-                <h3 id="fin-total-expenses" style="color: #ef4444;">TZS 0</h3>
-            </div>
-            <i class="fa-solid fa-receipt card-icon red"></i>
-        </div>
-        <div class="card">
-            <div class="card-info">
-                <p>Akiba Zilizopo</p>
-                <h3 id="fin-total-savings" style="color: #0284c7;">TZS 0</h3>
-            </div>
-            <i class="fa-solid fa-piggy-bank card-icon blue"></i>
-        </div>
-        <div class="card">
-            <div class="card-info">
-                <p>Salio lililobaki (Net)</p>
-                <h3 id="fin-net-balance">TZS 0</h3>
-            </div>
-            <i class="fa-solid fa-scale-balanced card-icon purple"></i>
-        </div>
-    </div>
+            <!-- 5. TAARIFA ZA FEDHA -->
+            <section id="finance-summary" class="content-section">
+                <div class="top-header">
+                    <h2>Muhtasari wa Mfumo wa Fedha</h2>
+                    <button class="btn btn-primary" onclick="syncFinanceData()">
+                        <i class="fa-solid fa-rotate"></i> Vuta Data za Fedha
+                    </button>
+                </div>
 
-    <div class="form-container" style="margin-top: 20px;">
-        <h3>Mchanganuo wa Akiba na Malengo</h3>
-        <p style="color: #666; margin-bottom: 15px;">
-            Hapa chini ni ulinganisho wa Akiba uliyonayo kwenye Mfumo wa Fedha dhidi ya Bajeti ya Malengo uliyojiwekea kwa mwaka huu.
-        </p>
-        <div id="finance-goal-comparison">
-            <!-- Tutajaza hapa na JS -->
-        </div>
-    </div>
-</section>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Jumla ya Mapato</p>
+                            <h3 id="fin-total-income" style="color: #16a34a;">TZS 0</h3>
+                        </div>
+                        <i class="fa-solid fa-money-bill-wave card-icon green"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Jumla ya Matumizi</p>
+                            <h3 id="fin-total-expenses" style="color: #ef4444;">TZS 0</h3>
+                        </div>
+                        <i class="fa-solid fa-receipt card-icon red"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Akiba Zilizopo</p>
+                            <h3 id="fin-total-savings" style="color: #0284c7;">TZS 0</h3>
+                        </div>
+                        <i class="fa-solid fa-piggy-bank card-icon blue"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Salio lililobaki (Net)</p>
+                            <h3 id="fin-net-balance">TZS 0</h3>
+                        </div>
+                        <i class="fa-solid fa-scale-balanced card-icon purple"></i>
+                    </div>
+                </div>
 
-
-                <div class="form-container">
+                <div class="form-container" style="margin-top: 20px;">
                     <h3>Mchanganuo wa Akiba na Malengo</h3>
                     <p style="color: #666; margin-bottom: 15px;">
                         Hapa chini ni ulinganisho wa Akiba uliyonayo kwenye Mfumo wa Fedha dhidi ya Bajeti ya Malengo uliyojiwekea kwa mwaka huu.
                     </p>
-                    <div id="finance-goal-comparison">
-                        <!-- Tutajaza ulinganisho hapa na JS -->
-                    </div>
-                </div>
-            </section>
-
-
-                <div class="report-printable-area" id="printable-area">
-                    <h2 id="report-title">Ripoti ya Tathmini ya Malengo</h2>
-                    <p id="report-subtitle">Mwaka: 2026</p>
-                    <hr style="margin: 15px 0;">
-                    <div id="report-content">
-                        <!-- Ripoti itatengenezwa hapa na JS -->
-                    </div>
+                    <div id="finance-goal-comparison"></div>
                 </div>
             </section>
 
@@ -261,4 +249,3 @@
     <script src="js/app.js"></script>
 </body>
 </html>
-
