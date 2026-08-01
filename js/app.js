@@ -26,21 +26,31 @@ function changeYear() {
 }
 
 function switchSection(sectionId, element) {
-    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    // Ficha sections zote
+    document.querySelectorAll('.content-section').forEach(s => {
+        s.style.display = 'none';
+        s.classList.remove('active');
+    });
+
+    // Ondoa active class kwenye menu yote
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
 
+    // Onyesha section iliyochaguliwa
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
+        targetSection.style.display = 'block';
         targetSection.classList.add('active');
     }
 
     if (element) element.classList.add('active');
 
+    // Run specific logic
     if (sectionId === 'dashboard') updateDashboard();
     if (sectionId === 'goals') renderGoalsManagement();
     if (sectionId === 'weekly-progress') populateWeeklySubgoalsSelect();
     if (sectionId === 'finance-summary') syncFinanceData();
 }
+
 
 
 // REGISTER GOAL
