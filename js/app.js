@@ -248,4 +248,78 @@ function downloadPDF() {
     const element = document.getElementById('printable-area');
     html2pdf().from(element).save(`Tathmini_Malengo_${currentYear}.pdf`);
 }
+// ==========================================
+// INTEGRATION NA MFUMO WA FEDHA (FINANCE SYNC)
+// ==========================================
+
+function syncFinanceData() {
+    // Kusoma data za mfumo wa fedha kutoka LocalStorage
+    const financeRawData = localStorage.getItem('mPEP_financial_data');
+
+    if (!financeRawData) {
+        console.log("Hakuna data zilizopatikana kutoka Mfumo wa Fedha kwenye kivinjari hiki.");
+        return;
+    }
+
+    try {
+        const financeData = JSON.parse(financeRawData);
+
+        // Kukokotoa Mapato
+        const totalIncome = (financeData.incomes || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+        // Kukokotoa Matumizi yote
+        const totalExpenses = (financeData.expenses || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+        // Kukokotoa Akiba specifically (kutoka kundi la 'Akiba')
+        const totalSavings = (financeData.expenses || [])
+            .filter(item => item.category === 'Akiba')
+            .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+        const netBalance = totalIncome - totalExpenses;
+
+        // Kujaza kwenye Mfumo wa Malengo (DOM)
+        if (document.getElementById('fin-total-income')) {
+            document.getElementById('fin-total-income').innerText = `TZS ${totalIncome.toLocaleString()}`;
+            document.getElementById('fin-total-expenses').innerText = `TZS ${totalExpenses.toLocaleString()}`;
+            document.getElementById('fin-total-savings').innerText = `TZS ${totalSavings.toLocaleString()}`;
+            document.getElementById('fin-net-balance').innerText = `TZS ${netBalance.toLocaleString()}`;
+        }
+
+        // Ulinganisho na Malengo
+        renderFinanceComparison(totalSavings);
+    } catch (e) {
+        console.error("Kosa wakati wa kusoma data za Mfumo wa Fedha:", e);
+    }
+}
+
+// ULINGANISHO WA AKIBA DHIDI YA BAJETI YA MALENGO
+function renderFinanceComparison(totalSavings) {
+    const container = document.getElementById('finance-goal-comparison');
+    if (!container) return;
+
+    const currentGoals = goalsData[currentYear] || [];
+    const totalBudget = currentGoals.reduce((sum, g) => sum + Number(g.budget || 0), 0);
+
+    const coveragePct = totalBudget > 0 ? ((totalSavings / totalBudget) * 100).toFixed(1) : 0;
+
+    container.innerHTML = `
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #0284c7;">
+            <h4>Utekelezaji wa Bajeti ya Mwaka (${currentYear})</h4>
+            <p style="margin: 8px 0;">Jumla ya Bajeti ya Malengo Yote: <strong>TZS ${totalBudget.toLocaleString()}</strong></p>
+            <p style="margin: 8px 0;">Akiba Iliyokusanywa (Mfumo wa Fedha): <strong>TZS ${totalSavings.toLocaleString()}</strong></p>
+            <p style="margin: 8px 0;">Uwezo wa Kugharamia Malengo: <strong>${coveragePct}%</strong></p>
+            
+            <div class="progress-bar-bg" style="height: 15px; margin-top: 10px; background-color: #e2e8f0; border-radius: 8px; overflow: hidden;">
+                <div class="progress-bar-fill ${getBarClass(coveragePct)}" style="width: ${Math.min(coveragePct, 100)}%; height: 100%;"></div>
+            </div>
+        </div>
+    `;
+}
+
+// Vuta data kiotomatiki wakati mfumo unapoanza
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        syncFinanceData();
+    }, 500);
+});
 
