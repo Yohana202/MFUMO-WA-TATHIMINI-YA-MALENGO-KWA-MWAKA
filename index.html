@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tathmini ya Malengo ya Familia</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-bullseye logo-icon"></i>
+                <h2>Family Goals</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item active" onclick="switchSection('dashboard', this)">
+                    <i class="fa-solid fa-chart-line"></i> <span>Dashboard</span>
+                </li>
+                <li class="nav-item" onclick="switchSection('goals', this)">
+                    <i class="fa-solid fa-list-check"></i> <span>Malengo ya Mwaka</span>
+                </li>
+                <li class="nav-item" onclick="switchSection('weekly-progress', this)">
+                    <i class="fa-solid fa-calendar-week"></i> <span>Progress ya Wiki</span>
+                </li>
+                <li class="nav-item" onclick="switchSection('reports', this)">
+                    <i class="fa-solid fa-file-invoice"></i> <span>Ripoti & Tathmini</span>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1 id="page-title">Dashboard ya Malengo</h1>
+                <div class="year-selector">
+                    <label>Mwaka:</label>
+                    <select id="selected-year" onchange="changeYear()">
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                    </select>
+                </div>
+            </header>
+
+            <!-- 1. DASHBOARD -->
+            <section id="dashboard" class="content-section active">
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Jumla ya Malengo</p>
+                            <h3 id="dash-total-goals">0</h3>
+                        </div>
+                        <i class="fa-solid fa-bullseye card-icon blue"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Progress ya Mwaka</p>
+                            <h3 id="dash-year-progress">0%</h3>
+                        </div>
+                        <i class="fa-solid fa-chart-pie card-icon green"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Progress Term 1 (Jan-Jun)</p>
+                            <h3 id="dash-term1-progress">0%</h3>
+                        </div>
+                        <i class="fa-solid fa-1 card-icon orange"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Progress Term 2 (Jul-Dis)</p>
+                            <h3 id="dash-term2-progress">0%</h3>
+                        </div>
+                        <i class="fa-solid fa-2 card-icon purple"></i>
+                    </div>
+                </div>
+
+                <div class="goals-overview-container">
+                    <h3>Maendeleo ya Malengo Yote (Mwaka Husika)</h3>
+                    <div id="dashboard-goals-list">
+                        <!-- Goal cards zitajazwa hapa na JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. MALENGO YA MWAKA -->
+            <section id="goals" class="content-section">
+                <div class="form-container">
+                    <h3>Sajili Lengo Jipya la Familia</h3>
+                    <form id="goal-form">
+                        <div class="form-group">
+                            <label>Jina la Lengo Kuu</label>
+                            <input type="text" id="goal-title" placeholder="mf. Ujenzi wa Nyumba, Nunua Shamba" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Maelezo Mfupi / Lengo la Maadili</label>
+                            <input type="text" id="goal-desc" placeholder="Maelezo ya ziada">
+                        </div>
+                        <div class="form-group">
+                            <label>Bajeti Inayokadiriwa (TZS)</label>
+                            <input type="number" id="goal-budget" placeholder="0.00">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Hifadhi Lengo Kuu</button>
+                    </form>
+                </div>
+
+                <div class="goals-management-list" id="goals-management-container">
+                    <!-- Structure ya kuongeza Sub-goals zitajazwa hapa -->
+                </div>
+            </section>
+
+            <!-- 3. PROGRESS YA KILA WIKI -->
+            <section id="weekly-progress" class="content-section">
+                <div class="form-container">
+                    <h3>Ingiza Progress ya Wiki</h3>
+                    <form id="weekly-form">
+                        <div class="form-group">
+                            <label>Chagua Lengo Dogo (Sub-Goal)</label>
+                            <select id="weekly-subgoal-select" required>
+                                <option value="">Chagua Lengo Dogo...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Mwezi</label>
+                            <select id="weekly-month" required>
+                                <option value="Januari">Januari</option>
+                                <option value="Februari">Februari</option>
+                                <option value="Machi">Machi</option>
+                                <option value="Aprili">Aprili</option>
+                                <option value="Mei">Mei</option>
+                                <option value="Juni">Juni</option>
+                                <option value="Julai">Julai</option>
+                                <option value="Agosti">Agosti</option>
+                                <option value="Septemba">Septemba</option>
+                                <option value="Oktoba">Oktoba</option>
+                                <option value="Novemba">Novemba</option>
+                                <option value="Disemba">Disemba</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Wiki ya Mwezi</label>
+                            <select id="weekly-week" required>
+                                <option value="Wiki ya 1">Wiki ya 1</option>
+                                <option value="Wiki ya 2">Wiki ya 2</option>
+                                <option value="Wiki ya 3">Wiki ya 3</option>
+                                <option value="Wiki ya 4">Wiki ya 4</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Asilimia ya Maendeleo Zilizofikiwa Sasa (%)</label>
+                            <input type="number" id="weekly-pct" min="0" max="100" placeholder="0-100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Taarifa / Hatua Zilizopigwa Wiki Hii</label>
+                            <input type="text" id="weekly-notes" placeholder="mf. Tumekamilisha kununua mifuko 50 ya saruji" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Hifadhi Progress ya Wiki</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- 4. RIPOTI NA TATHMINI -->
+            <section id="reports" class="content-section">
+                <div class="filter-box">
+                    <button class="btn btn-primary" onclick="generateReport('term1')">Ripoti Term 1 (Jan-Jun)</button>
+                    <button class="btn btn-primary" onclick="generateReport('term2')">Ripoti Term 2 (Jul-Dis)</button>
+                    <button class="btn btn-success" onclick="generateReport('yearly')">Ripoti ya Mwaka Mzima</button>
+                    <button class="btn btn-secondary" onclick="downloadPDF()"><i class="fa-solid fa-file-pdf"></i> Pakua PDF</button>
+                </div>
+
+                <div class="report-printable-area" id="printable-area">
+                    <h2 id="report-title">Ripoti ya Tathmini ya Malengo</h2>
+                    <p id="report-subtitle">Mwaka: 2026</p>
+                    <hr style="margin: 15px 0;">
+                    <div id="report-content">
+                        <!-- Ripoti itatengenezwa hapa na JS -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- JS -->
+    <script src="js/app.js"></script>
+</body>
+</html>
+
