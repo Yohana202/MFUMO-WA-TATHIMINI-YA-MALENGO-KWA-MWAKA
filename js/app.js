@@ -339,3 +339,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
 });
 
+function syncFinanceData() {
+    const rawData = localStorage.getItem('mPEP_financial_data');
+    if (!rawData) {
+        alert('Hujajaza taarifa zozote kwenye Mfumo wa Fedha bado!');
+        return;
+    }
+
+    const finData = JSON.parse(rawData);
+    
+    // Kupiga hesabu za Mapato
+    const totalIncome = (finData.incomes || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    
+    // Kupiga hesabu za Matumizi
+    const totalExpenses = (finData.expenses || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    
+    // Kupiga hesabu za Akiba (Category ya Akiba kwenye Matumizi au Incomes)
+    const totalSavings = (finData.expenses || [])
+        .filter(item => item.category === 'Akiba')
+        .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+    const netBalance = totalIncome - totalExpenses;
+
+    // Kujaza kwenye kadi
+    document.getElementById('fin-total-income').innerText = 'TZS ' + totalIncome.toLocaleString();
+    document.getElementById('fin-total-expenses').innerText = 'TZS ' + totalExpenses.toLocaleString();
+    document.getElementById('fin-total-savings').innerText = 'TZS ' + totalSavings.toLocaleString();
+    document.getElementById('fin-net-balance').innerText = 'TZS ' + netBalance.toLocaleString();
+
+    // Rangi ya Net Balance
+    const netElem = document.getElementById('fin-net-balance');
+    if (netBalance >= 0) {
+        netElem.style.color = '#16a34a';
+    } else {
+        netElem.style.color = '#ef4444';
+    }
+}
