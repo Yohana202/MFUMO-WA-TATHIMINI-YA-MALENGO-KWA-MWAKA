@@ -30,11 +30,13 @@
                 <li class="nav-item" onclick="switchSection('weekly-progress', this)">
                     <i class="fa-solid fa-calendar-week"></i> <span>Progress ya Wiki</span>
                 </li>
-                <li class="nav-item" onclick="switchSection('reports', this)">
+                                <li class="nav-item" onclick="switchSection('reports', this)">
                     <i class="fa-solid fa-file-invoice"></i> <span>Ripoti & Tathmini</span>
-                </li><li class="nav-item" onclick="switchSection('finance-summary', this)">
-    <i class="fa-solid fa-wallet"></i> <span>Taarifa za Fedha</span>
-</li>
+                </li>
+                <li class="nav-item" onclick="switchSection('finance-summary', this)">
+                    <i class="fa-solid fa-wallet"></i> <span>Taarifa za Fedha</span>
+                </li>
+
 
             </ul>
         </aside>
@@ -178,6 +180,57 @@
                     <button class="btn btn-success" onclick="generateReport('yearly')">Ripoti ya Mwaka Mzima</button>
                     <button class="btn btn-secondary" onclick="downloadPDF()"><i class="fa-solid fa-file-pdf"></i> Pakua PDF</button>
                 </div>
+                            <!-- 5. TAARIFA ZA FEDHA (FROM FINANCE SYSTEM) -->
+            <section id="finance-summary" class="content-section">
+                <div class="top-header" style="margin-bottom: 20px;">
+                    <h2>Muhtasari wa Mfumo wa Fedha</h2>
+                    <button class="btn btn-primary" onclick="syncFinanceData()">
+                        <i class="fa-solid fa-rotate"></i> Vuta Data za Fedha
+                    </button>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Jumla ya Mapato</p>
+                            <h3 id="fin-total-income" style="color: #16a34a;">TZS 0</h3>
+                        </div>
+                        <i class="fa-solid fa-money-bill-wave card-icon green"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Jumla ya Matumizi</p>
+                            <h3 id="fin-total-expenses" style="color: #ef4444;">TZS 0</h3>
+                        </div>
+                        <i class="fa-solid fa-receipt card-icon red"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Akiba Zilizopo</p>
+                            <h3 id="fin-total-savings" style="color: #0284c7;">TZS 0</h3>
+                        </div>
+                        <i class="fa-solid fa-piggy-bank card-icon blue"></i>
+                    </div>
+                    <div class="card">
+                        <div class="card-info">
+                            <p>Salio lililobaki (Net)</p>
+                            <h3 id="fin-net-balance">TZS 0</h3>
+                        </div>
+                        <i class="fa-solid fa-scale-balanced card-icon purple"></i>
+                    </div>
+                </div>
+
+                <div class="form-container">
+                    <h3>Mchanganuo wa Akiba na Malengo</h3>
+                    <p style="color: #666; margin-bottom: 15px;">
+                        Hapa chini ni ulinganisho wa Akiba uliyonayo kwenye Mfumo wa Fedha dhidi ya Bajeti ya Malengo uliyojiwekea kwa mwaka huu.
+                    </p>
+                    <div id="finance-goal-comparison">
+                        <!-- Tutajaza ulinganisho hapa na JS -->
+                    </div>
+                </div>
+            </section>
+
 
                 <div class="report-printable-area" id="printable-area">
                     <h2 id="report-title">Ripoti ya Tathmini ya Malengo</h2>
