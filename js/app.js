@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
     setTimeout(() => {
-        syncFinanceData();
+        syncFinanceData(false);
     }, 500);
 });
 
@@ -132,7 +132,7 @@ function switchSection(sectionId, element) {
     if (sectionId === 'dashboard') updateDashboard();
     if (sectionId === 'goals') renderGoalsManagement();
     if (sectionId === 'weekly-progress') populateSubgoalSelect();
-    if (sectionId === 'finance-summary') syncFinanceData();
+    if (sectionId === 'finance-summary') syncFinanceData(false);
 }
 
 // --- DASHBOARD & RENDERING ---
@@ -275,7 +275,7 @@ function addSubgoal(goalId) {
 }
 
 function deleteGoal(goalId) {
-    if (confirm('Je, una uhakika unataka kufuta lengo hii?')) {
+    if (confirm('Je, una uhakika unataka kufuta lengo hili?')) {
         const currentYear = document.getElementById('selected-year').value;
         let goals = getStoredGoals(currentYear);
         goals = goals.filter(g => g.id !== goalId);
@@ -409,9 +409,10 @@ function downloadPDF() {
 }
 
 // --- FINANCE INTEGRATION ---
-function syncFinanceData() {
+function syncFinanceData(showAlert = true) {
     const rawData = localStorage.getItem('mPEP_financial_data');
     if (!rawData) {
+        if (showAlert) alert('Hujajaza taarifa zozote kwenye Mfumo wa Fedha bado!');
         return;
     }
 
@@ -436,5 +437,9 @@ function syncFinanceData() {
     if (netElem) {
         netElem.innerText = 'TZS ' + netBalance.toLocaleString();
         netElem.style.color = netBalance >= 0 ? '#16a34a' : '#ef4444';
+    }
+
+    if (showAlert) {
+        alert('Taarifa za fedha zimesasishwa kikamilifu!');
     }
 }
