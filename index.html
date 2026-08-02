@@ -102,7 +102,19 @@
                 <div class="form-container">
                     <h3>Sajili Lengo Kuu Jipya</h3>
                     <form id="goal-form">
-                        <div class="form-group">
+                        <div class="form-group"><div class="form-group">
+    <label>Aina ya Lengo</label>
+    <select id="goal-category" required>
+        <option value="">-- Chagua Aina ya Lengo --</option>
+        <option value="KIROHO">1. MALENGO YA KIROHO</option>
+        <option value="KAZI">2. KAZI</option>
+        <option value="FAMILIA">3. MAHUSIANO MEMA NA FAMILIA</option>
+        <option value="UCHUMI">4. UCHUMI</option>
+        <option value="KILIMO">5. KILIMO</option>
+        <option value="AFYA">6. AFYA</option>
+    </select>
+</div>
+
                             <label>Jina la Lengo Kuu</label>
                             <input type="text" id="goal-title" required placeholder="Mf. Kujenga Nyumba, Kununua Shamba...">
                         </div>
@@ -180,7 +192,30 @@
                 <div class="top-header">
                     <h2>Ripoti ya Tathmini ya Malengo</h2>
                 </div>
-                <div class="filter-box">
+                <div class="filter-box"><div class="filter-box" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px;">
+    <!-- Selector ya Mwezi -->
+    <select id="report-month-select" class="form-control" style="padding: 8px; border-radius: 5px;">
+        <option value="Januari">Januari</option>
+        <option value="Februari">Februari</option>
+        <option value="Machi">Machi</option>
+        <option value="Aprili">Aprili</option>
+        <option value="Mei">Mei</option>
+        <option value="Juni">Juni</option>
+        <option value="Julai">Julai</option>
+        <option value="Agosti">Agosti</option>
+        <option value="Septemba">Septemba</option>
+        <option value="Oktoba">Oktoba</option>
+        <option value="Novemba">Novemba</option>
+        <option value="Disemba">Disemba</option>
+    </select>
+    
+    <button class="btn btn-primary" onclick="generateMonthlyReport()">Ripoti ya Mwezi</button>
+    <button class="btn btn-primary" onclick="generateReport('term1')">Ripoti Term 1</button>
+    <button class="btn btn-primary" onclick="generateReport('term2')">Ripoti Term 2</button>
+    <button class="btn btn-success" onclick="generateReport('yearly')">Ripoti ya Mwaka Mzima</button>
+    <button class="btn btn-secondary" onclick="downloadPDF()"><i class="fa-solid fa-download"></i> Pakua PDF</button>
+</div>
+
                     <button class="btn btn-primary" onclick="generateReport('term1')">Ripoti Term 1</button>
                     <button class="btn btn-primary" onclick="generateReport('term2')">Ripoti Term 2</button>
                     <button class="btn btn-success" onclick="generateReport('yearly')">Ripoti ya Mwaka Mzima</button>
