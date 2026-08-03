@@ -37,9 +37,19 @@
 
     <!-- MAIN CONTENT AREA -->
     <main class="main-content">
-        <header class="top-header">
+        <header class="top-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div class="header-title">
                 <h1 id="page-title">Dashboard ya Malengo</h1>
+            </div>
+            <!-- SEHEMU YA BACKUP ILI DATA ZISIPOTEE -->
+            <div style="display: flex; gap: 8px;">
+                <button type="button" onclick="exportBackup()" class="btn" style="background: #16a34a; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
+                    <i class="fa-solid fa-download"></i> Pakua Backup
+                </button>
+                <button type="button" onclick="document.getElementById('importFile').click()" class="btn" style="background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
+                    <i class="fa-solid fa-upload"></i> Rudisha Backup
+                </button>
+                <input type="file" id="importFile" onchange="importBackup(event)" style="display: none;" accept=".json">
             </div>
         </header>
 
@@ -67,9 +77,7 @@
 
             <div class="card">
                 <h3>Orodha ya Malengo Yako</h3>
-                <div id="goalsList" style="margin-top: 15px;">
-                    <p style="color: #64748b;">Inapakia malengo...</p>
-                </div>
+                <div id="goalsList" style="margin-top: 15px;"></div>
             </div>
         </section>
 
@@ -77,7 +85,7 @@
         <section id="weekly-progress" class="page-section" style="display: none;">
             <div class="card">
                 <h3>Maendeleo ya Kila Wiki</h3>
-                <p>Ufuatiliaji wa maendeleo ya wiki utaonekana hapa kulingana na malengo uliyoweka.</p>
+                <p>Ufuatiliaji wa maendeleo ya wiki utaonekana hapa.</p>
             </div>
         </section>
 
@@ -102,10 +110,7 @@
                     </select>
 
                     <button type="button" onclick="generateReport('mwezi')" class="btn btn-primary" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwezi</button>
-                    <button type="button" onclick="generateReport('term1')" class="btn btn-info" style="padding: 8px 15px; cursor: pointer;">Ripoti Term 1</button>
-                    <button type="button" onclick="generateReport('term2')" class="btn btn-info" style="padding: 8px 15px; cursor: pointer;">Ripoti Term 2</button>
                     <button type="button" onclick="generateReport('mwaka')" class="btn btn-success" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwaka Mzima</button>
-                    
                     <button type="button" onclick="downloadPDF()" class="btn btn-secondary" style="background-color: #4b5563; color: white; padding: 8px 15px; cursor: pointer;">
                         <i class="fa-solid fa-download"></i> Pakua PDF
                     </button>
@@ -113,7 +118,7 @@
 
                 <div id="reportOutput" class="report-box" style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fafafa;">
                     <h2>Ripoti ya Tathmini</h2>
-                    <p style="color: #64748b;">Chagua ripoti hapo juu ili kuonyesha taarifa na kuipakua.</p>
+                    <p style="color: #64748b;">Chagua ripoti hapo juu ili kuonyesha taarifa.</p>
                 </div>
             </div>
         </section>
@@ -122,57 +127,32 @@
         <section id="finance-summary" class="page-section" style="display: none;">
             <div class="card">
                 <h3>Muhtasari wa Mfumo wa Fedha</h3>
-                <button type="button" onclick="syncFinancialData()" class="btn btn-primary" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">
-                    <i class="fa-solid fa-rotate"></i> Vuta Data za Fedha
-                </button>
                 <div id="financeDisplay">
-                    <p style="color: #64748b;">Bonyeza kitufe hapo juu kuonyesha taarifa za fedha.</p>
+                    <p style="color: #64748b;">Ingiza au rudisha taarifa za fedha hapa.</p>
                 </div>
             </div>
         </section>
     </main>
 </div>
 
-<!-- JAVASCRIPT SYSTEM -->
 <script>
 function switchSection(sectionId, element) {
-    try {
-        const sections = document.querySelectorAll('.page-section');
-        sections.forEach(sec => sec.style.display = 'none');
+    document.querySelectorAll('.page-section').forEach(sec => sec.style.display = 'none');
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => item.classList.remove('active'));
 
-        const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-        navItems.forEach(item => item.classList.remove('active'));
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) targetSection.style.display = 'block';
 
-        const targetSection = document.getElementById(sectionId);
-        if (targetSection) targetSection.style.display = 'block';
-
-        if (element) {
-            element.classList.add('active');
-            const pageTitle = document.getElementById('page-title');
-            if (pageTitle) pageTitle.innerText = element.innerText.trim();
-        }
-    } catch (e) {
-        console.error(e);
+    if (element) {
+        element.classList.add('active');
+        document.getElementById('page-title').innerText = element.innerText.trim();
     }
 }
 
-// TAPTAFA DATA ZA MALENGO ZILIZOPO KWENYE LOCALSTORAGE
 function getStoredGoals() {
-    const keys = ['family_goals', 'goals', 'malengo', 'malengo_2026', 'mPEP_goals'];
-    let allGoals = [];
-    
-    for (let key of keys) {
-        const data = localStorage.getItem(key);
-        if (data) {
-            try {
-                const parsed = JSON.parse(data);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    allGoals = allGoals.concat(parsed);
-                }
-            } catch(e) {}
-        }
-    }
-    return allGoals;
+    try {
+        return JSON.parse(localStorage.getItem('family_goals') || '[]');
+    } catch(e) { return []; }
 }
 
 function renderGoals() {
@@ -183,28 +163,27 @@ function renderGoals() {
     if (!goalsList) return;
 
     if (goals.length === 0) {
-        goalsList.innerHTML = `<p style="color: #94a3b8;">Haujanakili lengo lolote bado au haviwezi kuonekana. Unaweza kuongeza lengo jipya hapo juu.</p>`;
+        goalsList.innerHTML = `<p style="color: #94a3b8;">Hakuna malengo yaliyohifadhiwa. Ongeza lengo au tumia kitufe cha 'Rudisha Backup' kama unayo Backup.</p>`;
         if (dashboardSummary) dashboardSummary.innerHTML = `<p>Jumla ya Malengo: <strong>0</strong></p>`;
         return;
     }
 
     let html = '<ul style="list-style: none; padding: 0;">';
     goals.forEach((g, index) => {
-        const title = typeof g === 'string' ? g : (g.title || g.name || g.lengo || 'Lengo ' + (index+1));
-        const desc = typeof g === 'object' && g.desc ? g.desc : '';
         html += `
-            <li style="background: #f8fafc; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #2563eb;">
-                <strong>${title}</strong>
-                ${desc ? `<p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px;">${desc}</p>` : ''}
+            <li style="background: #f8fafc; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #2563eb; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>${g.title}</strong>
+                    ${g.desc ? `<p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px;">${g.desc}</p>` : ''}
+                </div>
+                <button onclick="deleteGoal(${index})" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
             </li>
         `;
     });
     html += '</ul>';
 
     goalsList.innerHTML = html;
-    if (dashboardSummary) {
-        dashboardSummary.innerHTML = `<p>Jumla ya Malengo Yako: <strong style="color: #2563eb; font-size: 18px;">${goals.length}</strong></p>`;
-    }
+    if (dashboardSummary) dashboardSummary.innerHTML = `<p>Jumla ya Malengo: <strong style="color: #2563eb; font-size: 18px;">${goals.length}</strong></p>`;
 }
 
 function addGoal(e) {
@@ -212,11 +191,10 @@ function addGoal(e) {
     const title = document.getElementById('goalTitle').value;
     const desc = document.getElementById('goalDesc').value;
 
-    let currentGoals = getStoredGoals();
-    currentGoals.push({ title: title, desc: desc, date: new Date().toLocaleDateString('sw-TZ') });
+    let goals = getStoredGoals();
+    goals.push({ title: title, desc: desc, date: new Date().toLocaleDateString('sw-TZ') });
 
-    localStorage.setItem('family_goals', JSON.stringify(currentGoals));
-    
+    localStorage.setItem('family_goals', JSON.stringify(goals));
     document.getElementById('goalTitle').value = '';
     document.getElementById('goalDesc').value = '';
 
@@ -224,95 +202,48 @@ function addGoal(e) {
     alert('Lengo limehifadhiwa kikamilifu!');
 }
 
-function getStoredIncome() {
-    try {
-        return JSON.parse(localStorage.getItem('mPEP_income') || localStorage.getItem('financial_income') || '[]');
-    } catch(e) { return []; }
+function deleteGoal(index) {
+    let goals = getStoredGoals();
+    goals.splice(index, 1);
+    localStorage.setItem('family_goals', JSON.stringify(goals));
+    renderGoals();
 }
 
-function getStoredExpenses() {
-    try {
-        return JSON.parse(localStorage.getItem('mPEP_expenses') || localStorage.getItem('financial_expenses') || '[]');
-    } catch(e) { return []; }
+// BACKUP SYSTEM
+function exportBackup() {
+    const data = {
+        family_goals: localStorage.getItem('family_goals') || '[]',
+        mPEP_income: localStorage.getItem('mPEP_income') || '[]',
+        mPEP_expenses: localStorage.getItem('mPEP_expenses') || '[]'
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Malengo_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
 }
 
-function generateReport(type) {
-    const reportBox = document.getElementById('reportOutput');
-    if (!reportBox) return;
+function importBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    const monthSelect = document.getElementById('monthSelect');
-    const selectedMonth = monthSelect ? monthSelect.value : 'Januari';
-    const dateToday = new Date().toLocaleDateString('sw-TZ');
-
-    const goals = getStoredGoals();
-    const mapato = getStoredIncome();
-    const matumizi = getStoredExpenses();
-
-    const totalIncome = mapato.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const totalExpenses = matumizi.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const balance = totalIncome - totalExpenses;
-
-    let titleText = type === 'mwezi' ? `Ripoti ya Mwezi: ${selectedMonth}` :
-                    type === 'term1' ? `Ripoti ya Muhula wa Kwanza (Term 1)` :
-                    type === 'term2' ? `Ripoti ya Muhula wa Pili (Term 2)` : `Ripoti ya Mwaka Mzima (2026)`;
-
-    let goalsHtml = goals.length > 0 ? 
-        goals.map(g => `<li>${typeof g === 'string' ? g : (g.title || g.name || 'Lengo')}</li>`).join('') : 
-        '<li>Hakuna malengo yaliyonakiliwa</li>';
-
-    reportBox.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #1e293b; background: #ffffff; padding: 20px; border-radius: 8px;">
-            <div style="border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 15px;">
-                <h2 style="color: #2563eb; margin: 0; font-size: 20px;">MFUMO WA MALENGO NA TATHMINI</h2>
-                <small style="color: #64748b;">Tarehe ya Ripoti: ${dateToday}</small>
-            </div>
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.family_goals) localStorage.setItem('family_goals', data.family_goals);
+            if (data.mPEP_income) localStorage.setItem('mPEP_income', data.mPEP_income);
+            if (data.mPEP_expenses) localStorage.setItem('mPEP_expenses', data.mPEP_expenses);
             
-            <h3 style="margin-top: 10px; color: #0f172a;">${titleText}</h3>
-            
-            <div style="margin-top: 15px;">
-                <h4>Orodha ya Malengo:</h4>
-                <ul>${goalsHtml}</ul>
-            </div>
-
-            <div style="margin-top: 20px; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                <h4 style="margin-top: 0; color: #1e293b;">Hali ya Fedha:</h4>
-                <p><strong>Jumla ya Mapato:</strong> <span style="color: #16a34a;">TZS ${totalIncome.toLocaleString()}</span></p>
-                <p><strong>Jumla ya Matumizi:</strong> <span style="color: #ef4444;">TZS ${totalExpenses.toLocaleString()}</span></p>
-                <p><strong>Salio Lililobaki:</strong> <span style="color: #2563eb;">TZS ${balance.toLocaleString()}</span></p>
-            </div>
-        </div>
-    `;
+            alert('Taarifa zako zote zimerudishwa kikamilifu!');
+            renderGoals();
+        } catch(err) {
+            alert('Faili hili halina mfumo sahihi wa Backup.');
+        }
+    };
+    reader.readAsText(file);
 }
 
-function downloadPDF() {
-    const reportElement = document.getElementById('reportOutput');
-    if (!reportElement || reportElement.innerText.includes("Chagua ripoti hapo juu")) {
-        alert("Tafadhali chagua aina ya ripoti kwanza!");
-        return;
-    }
-    html2pdf().set({ margin: 10, filename: 'Ripoti_ya_Malengo.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(reportElement).save();
-}
-
-function syncFinancialData() {
-    const mapato = getStoredIncome();
-    const matumizi = getStoredExpenses();
-    const totalIncome = mapato.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const totalExpenses = matumizi.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const balance = totalIncome - totalExpenses;
-
-    const displayContainer = document.getElementById('financeDisplay');
-    if (displayContainer) {
-        displayContainer.innerHTML = `
-            <div style="padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <p><strong>Jumla ya Mapato:</strong> <span style="color: #16a34a;">TZS ${totalIncome.toLocaleString()}</span></p>
-                <p><strong>Jumla ya Matumizi:</strong> <span style="color: #ef4444;">TZS ${totalExpenses.toLocaleString()}</span></p>
-                <p><strong>Salio Lililobaki:</strong> <span style="color: #2563eb;">TZS ${balance.toLocaleString()}</span></p>
-            </div>
-        `;
-    }
-}
-
-// Ran instantly on load
 window.onload = function() {
     renderGoals();
 };
