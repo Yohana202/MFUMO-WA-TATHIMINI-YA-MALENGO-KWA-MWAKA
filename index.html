@@ -6,7 +6,6 @@
     <title>Family Goals & Financial System</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2pdf Library kwa ajili ya Kupakua PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -49,14 +48,28 @@
             <div class="card">
                 <h3>Muhtasari wa Malengo</h3>
                 <p>Mwaka: <strong>2026</strong></p>
+                <div id="dashboardSummary" style="margin-top: 15px;"></div>
             </div>
         </section>
 
         <!-- 2. MALENGO SECTION -->
         <section id="goals" class="page-section" style="display: none;">
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>Ongeza Lengo Jipya</h3>
+                <form id="goalForm" onsubmit="addGoal(event)" style="display: grid; gap: 10px; max-width: 500px; margin-top: 10px;">
+                    <input type="text" id="goalTitle" placeholder="Jina la Lengo (mf. Kununua kiwanja, Biashara)" required style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                    <textarea id="goalDesc" placeholder="Maelezo zaidi kuhusu lengo..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 5px;">
+                        <i class="fa-solid fa-plus"></i> Hifadhi Lengo
+                    </button>
+                </form>
+            </div>
+
             <div class="card">
-                <h3>Orodha ya Malengo ya Mwaka</h3>
-                <p>Orodha ya malengo yako itaonekana hapa.</p>
+                <h3>Orodha ya Malengo Yako</h3>
+                <div id="goalsList" style="margin-top: 15px;">
+                    <p style="color: #64748b;">Inapakia malengo...</p>
+                </div>
             </div>
         </section>
 
@@ -64,7 +77,7 @@
         <section id="weekly-progress" class="page-section" style="display: none;">
             <div class="card">
                 <h3>Maendeleo ya Kila Wiki</h3>
-                <p>Ufuatiliaji wa maendeleo ya wiki.</p>
+                <p>Ufuatiliaji wa maendeleo ya wiki utaonekana hapa kulingana na malengo uliyoweka.</p>
             </div>
         </section>
 
@@ -73,7 +86,7 @@
             <div class="card">
                 <h3>Chagua Aina ya Ripoti</h3>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
-                    <select id="monthSelect" class="form-control" style="width: auto; padding: 8px;">
+                    <select id="monthSelect" class="form-control" style="padding: 8px;">
                         <option value="Januari">Januari</option>
                         <option value="Februari">Februari</option>
                         <option value="Machi">Machi</option>
@@ -125,49 +138,101 @@
 function switchSection(sectionId, element) {
     try {
         const sections = document.querySelectorAll('.page-section');
-        sections.forEach(function(sec) {
-            sec.style.display = 'none';
-        });
+        sections.forEach(sec => sec.style.display = 'none');
 
         const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-        navItems.forEach(function(item) {
-            item.classList.remove('active');
-        });
+        navItems.forEach(item => item.classList.remove('active'));
 
         const targetSection = document.getElementById(sectionId);
-        if (targetSection) {
-            targetSection.style.display = 'block';
-        }
+        if (targetSection) targetSection.style.display = 'block';
 
         if (element) {
             element.classList.add('active');
             const pageTitle = document.getElementById('page-title');
-            if (pageTitle) {
-                pageTitle.innerText = element.innerText.trim();
-            }
+            if (pageTitle) pageTitle.innerText = element.innerText.trim();
         }
     } catch (e) {
-        console.error("Error switching section:", e);
+        console.error(e);
     }
+}
+
+// TAPTAFA DATA ZA MALENGO ZILIZOPO KWENYE LOCALSTORAGE
+function getStoredGoals() {
+    const keys = ['family_goals', 'goals', 'malengo', 'malengo_2026', 'mPEP_goals'];
+    let allGoals = [];
+    
+    for (let key of keys) {
+        const data = localStorage.getItem(key);
+        if (data) {
+            try {
+                const parsed = JSON.parse(data);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    allGoals = allGoals.concat(parsed);
+                }
+            } catch(e) {}
+        }
+    }
+    return allGoals;
+}
+
+function renderGoals() {
+    const goalsList = document.getElementById('goalsList');
+    const dashboardSummary = document.getElementById('dashboardSummary');
+    const goals = getStoredGoals();
+
+    if (!goalsList) return;
+
+    if (goals.length === 0) {
+        goalsList.innerHTML = `<p style="color: #94a3b8;">Haujanakili lengo lolote bado au haviwezi kuonekana. Unaweza kuongeza lengo jipya hapo juu.</p>`;
+        if (dashboardSummary) dashboardSummary.innerHTML = `<p>Jumla ya Malengo: <strong>0</strong></p>`;
+        return;
+    }
+
+    let html = '<ul style="list-style: none; padding: 0;">';
+    goals.forEach((g, index) => {
+        const title = typeof g === 'string' ? g : (g.title || g.name || g.lengo || 'Lengo ' + (index+1));
+        const desc = typeof g === 'object' && g.desc ? g.desc : '';
+        html += `
+            <li style="background: #f8fafc; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #2563eb;">
+                <strong>${title}</strong>
+                ${desc ? `<p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px;">${desc}</p>` : ''}
+            </li>
+        `;
+    });
+    html += '</ul>';
+
+    goalsList.innerHTML = html;
+    if (dashboardSummary) {
+        dashboardSummary.innerHTML = `<p>Jumla ya Malengo Yako: <strong style="color: #2563eb; font-size: 18px;">${goals.length}</strong></p>`;
+    }
+}
+
+function addGoal(e) {
+    e.preventDefault();
+    const title = document.getElementById('goalTitle').value;
+    const desc = document.getElementById('goalDesc').value;
+
+    let currentGoals = getStoredGoals();
+    currentGoals.push({ title: title, desc: desc, date: new Date().toLocaleDateString('sw-TZ') });
+
+    localStorage.setItem('family_goals', JSON.stringify(currentGoals));
+    
+    document.getElementById('goalTitle').value = '';
+    document.getElementById('goalDesc').value = '';
+
+    renderGoals();
+    alert('Lengo limehifadhiwa kikamilifu!');
 }
 
 function getStoredIncome() {
     try {
-        return JSON.parse(
-            localStorage.getItem('mPEP_income') || 
-            localStorage.getItem('financial_income') || 
-            '[]'
-        );
+        return JSON.parse(localStorage.getItem('mPEP_income') || localStorage.getItem('financial_income') || '[]');
     } catch(e) { return []; }
 }
 
 function getStoredExpenses() {
     try {
-        return JSON.parse(
-            localStorage.getItem('mPEP_expenses') || 
-            localStorage.getItem('financial_expenses') || 
-            '[]'
-        );
+        return JSON.parse(localStorage.getItem('mPEP_expenses') || localStorage.getItem('financial_expenses') || '[]');
     } catch(e) { return []; }
 }
 
@@ -179,29 +244,21 @@ function generateReport(type) {
     const selectedMonth = monthSelect ? monthSelect.value : 'Januari';
     const dateToday = new Date().toLocaleDateString('sw-TZ');
 
+    const goals = getStoredGoals();
     const mapato = getStoredIncome();
     const matumizi = getStoredExpenses();
 
-    const totalIncome = mapato.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
-    const totalExpenses = matumizi.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
+    const totalIncome = mapato.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const totalExpenses = matumizi.reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const balance = totalIncome - totalExpenses;
 
-    let titleText = "";
-    let descText = "";
+    let titleText = type === 'mwezi' ? `Ripoti ya Mwezi: ${selectedMonth}` :
+                    type === 'term1' ? `Ripoti ya Muhula wa Kwanza (Term 1)` :
+                    type === 'term2' ? `Ripoti ya Muhula wa Pili (Term 2)` : `Ripoti ya Mwaka Mzima (2026)`;
 
-    if (type === 'mwezi') {
-        titleText = "Ripoti ya Mwezi: " + selectedMonth;
-        descText = "Tathmini ya utekelezaji wa malengo kwa mwezi wa <strong>" + selectedMonth + "</strong>.";
-    } else if (type === 'term1') {
-        titleText = "Ripoti ya Muhula wa Kwanza (Term 1)";
-        descText = "Tathmini ya utekelezaji wa malengo kwa Muhula wa Kwanza.";
-    } else if (type === 'term2') {
-        titleText = "Ripoti ya Muhula wa Pili (Term 2)";
-        descText = "Tathmini ya utekelezaji wa malengo kwa Muhula wa Pili.";
-    } else if (type === 'mwaka') {
-        titleText = "Ripoti ya Mwaka Mzima (2026)";
-        descText = "Tathmini na muhtasari wa jumla wa utekelezaji wa malengo yote ya mwaka.";
-    }
+    let goalsHtml = goals.length > 0 ? 
+        goals.map(g => `<li>${typeof g === 'string' ? g : (g.title || g.name || 'Lengo')}</li>`).join('') : 
+        '<li>Hakuna malengo yaliyonakiliwa</li>';
 
     reportBox.innerHTML = `
         <div style="font-family: Arial, sans-serif; color: #1e293b; background: #ffffff; padding: 20px; border-radius: 8px;">
@@ -211,13 +268,17 @@ function generateReport(type) {
             </div>
             
             <h3 style="margin-top: 10px; color: #0f172a;">${titleText}</h3>
-            <p style="color: #334155;">${descText}</p>
             
+            <div style="margin-top: 15px;">
+                <h4>Orodha ya Malengo:</h4>
+                <ul>${goalsHtml}</ul>
+            </div>
+
             <div style="margin-top: 20px; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                <h4 style="margin-top: 0; color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Hali ya Fedha:</h4>
-                <p style="margin: 5px 0;"><strong>Jumla ya Mapato:</strong> <span style="color: #16a34a; font-weight: bold;">TZS ${totalIncome.toLocaleString()}</span></p>
-                <p style="margin: 5px 0;"><strong>Jumla ya Matumizi:</strong> <span style="color: #ef4444; font-weight: bold;">TZS ${totalExpenses.toLocaleString()}</span></p>
-                <p style="margin: 5px 0;"><strong>Salio Lililobaki:</strong> <span style="color: #2563eb; font-weight: bold;">TZS ${balance.toLocaleString()}</span></p>
+                <h4 style="margin-top: 0; color: #1e293b;">Hali ya Fedha:</h4>
+                <p><strong>Jumla ya Mapato:</strong> <span style="color: #16a34a;">TZS ${totalIncome.toLocaleString()}</span></p>
+                <p><strong>Jumla ya Matumizi:</strong> <span style="color: #ef4444;">TZS ${totalExpenses.toLocaleString()}</span></p>
+                <p><strong>Salio Lililobaki:</strong> <span style="color: #2563eb;">TZS ${balance.toLocaleString()}</span></p>
             </div>
         </div>
     `;
@@ -225,42 +286,36 @@ function generateReport(type) {
 
 function downloadPDF() {
     const reportElement = document.getElementById('reportOutput');
-
     if (!reportElement || reportElement.innerText.includes("Chagua ripoti hapo juu")) {
-        alert("Tafadhali chagua aina ya ripoti kwanza (mfano: Ripoti ya Mwezi au Term 1) kabla ya kupakua PDF!");
+        alert("Tafadhali chagua aina ya ripoti kwanza!");
         return;
     }
-
-    const options = {
-        margin:       10,
-        filename:     'Ripoti_ya_Malengo.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(options).from(reportElement).save();
+    html2pdf().set({ margin: 10, filename: 'Ripoti_ya_Malengo.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(reportElement).save();
 }
 
 function syncFinancialData() {
     const mapato = getStoredIncome();
     const matumizi = getStoredExpenses();
-
-    const totalIncome = mapato.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
-    const totalExpenses = matumizi.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
+    const totalIncome = mapato.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const totalExpenses = matumizi.reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const balance = totalIncome - totalExpenses;
 
     const displayContainer = document.getElementById('financeDisplay');
     if (displayContainer) {
         displayContainer.innerHTML = `
             <div style="padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <p style="margin: 8px 0;"><strong>Jumla ya Mapato:</strong> <span style="color: #16a34a; font-weight: bold;">TZS ${totalIncome.toLocaleString()}</span></p>
-                <p style="margin: 8px 0;"><strong>Jumla ya Matumizi:</strong> <span style="color: #ef4444; font-weight: bold;">TZS ${totalExpenses.toLocaleString()}</span></p>
-                <p style="margin: 8px 0;"><strong>Salio Lililobaki:</strong> <span style="color: #2563eb; font-weight: bold;">TZS ${balance.toLocaleString()}</span></p>
+                <p><strong>Jumla ya Mapato:</strong> <span style="color: #16a34a;">TZS ${totalIncome.toLocaleString()}</span></p>
+                <p><strong>Jumla ya Matumizi:</strong> <span style="color: #ef4444;">TZS ${totalExpenses.toLocaleString()}</span></p>
+                <p><strong>Salio Lililobaki:</strong> <span style="color: #2563eb;">TZS ${balance.toLocaleString()}</span></p>
             </div>
         `;
     }
 }
+
+// Ran instantly on load
+window.onload = function() {
+    renderGoals();
+};
 </script>
 </body>
 </html>
