@@ -18,21 +18,21 @@
             <h2><i class="fa-solid fa-bullseye"></i> Family Goals</h2>
         </div>
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" onclick="switchSection('dashboard', this)">
+            <button type="button" class="nav-item active" onclick="switchSection('dashboard', this)">
                 <i class="fa-solid fa-chart-pie"></i> Dashboard
-            </a>
-            <a href="#" class="nav-item" onclick="switchSection('goals', this)">
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('goals', this)">
                 <i class="fa-solid fa-list-check"></i> Malengo ya Mwaka
-            </a>
-            <a href="#" class="nav-item" onclick="switchSection('weekly-progress', this)">
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('weekly-progress', this)">
                 <i class="fa-solid fa-calendar-week"></i> Progress ya Wiki
-            </a>
-            <a href="#" class="nav-item" onclick="switchSection('reports', this)">
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('reports', this)">
                 <i class="fa-solid fa-file-contract"></i> Ripoti & Tathmini
-            </a>
-            <a href="#" class="nav-item" onclick="switchSection('finance-summary', this)">
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('finance-summary', this)">
                 <i class="fa-solid fa-wallet"></i> Taarifa za Fedha
-            </a>
+            </button>
         </nav>
     </aside>
 
@@ -88,12 +88,12 @@
                         <option value="Disemba">Disemba</option>
                     </select>
 
-                    <button onclick="generateReport('mwezi')" class="btn btn-primary" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwezi</button>
-                    <button onclick="generateReport('term1')" class="btn btn-info" style="padding: 8px 15px; cursor: pointer;">Ripoti Term 1</button>
-                    <button onclick="generateReport('term2')" class="btn btn-info" style="padding: 8px 15px; cursor: pointer;">Ripoti Term 2</button>
-                    <button onclick="generateReport('mwaka')" class="btn btn-success" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwaka Mzima</button>
+                    <button type="button" onclick="generateReport('mwezi')" class="btn btn-primary" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwezi</button>
+                    <button type="button" onclick="generateReport('term1')" class="btn btn-info" style="padding: 8px 15px; cursor: pointer;">Ripoti Term 1</button>
+                    <button type="button" onclick="generateReport('term2')" class="btn btn-info" style="padding: 8px 15px; cursor: pointer;">Ripoti Term 2</button>
+                    <button type="button" onclick="generateReport('mwaka')" class="btn btn-success" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwaka Mzima</button>
                     
-                    <button onclick="downloadPDF()" class="btn btn-secondary" style="background-color: #4b5563; color: white; padding: 8px 15px; cursor: pointer;">
+                    <button type="button" onclick="downloadPDF()" class="btn btn-secondary" style="background-color: #4b5563; color: white; padding: 8px 15px; cursor: pointer;">
                         <i class="fa-solid fa-download"></i> Pakua PDF
                     </button>
                 </div>
@@ -109,7 +109,7 @@
         <section id="finance-summary" class="page-section" style="display: none;">
             <div class="card">
                 <h3>Muhtasari wa Mfumo wa Fedha</h3>
-                <button onclick="syncFinancialData()" class="btn btn-primary" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">
+                <button type="button" onclick="syncFinancialData()" class="btn btn-primary" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">
                     <i class="fa-solid fa-rotate"></i> Vuta Data za Fedha
                 </button>
                 <div id="financeDisplay">
@@ -120,43 +120,55 @@
     </main>
 </div>
 
-<!-- JAVASCRIPT DIRECT IN HTML (NO EXTERNAL FILE NEEDED) -->
+<!-- JAVASCRIPT SYSTEM -->
 <script>
 function switchSection(sectionId, element) {
-    const sections = document.querySelectorAll('.page-section');
-    sections.forEach(sec => sec.style.display = 'none');
+    try {
+        const sections = document.querySelectorAll('.page-section');
+        sections.forEach(function(sec) {
+            sec.style.display = 'none';
+        });
 
-    const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-    navItems.forEach(item => item.classList.remove('active'));
+        const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+        navItems.forEach(function(item) {
+            item.classList.remove('active');
+        });
 
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        targetSection.style.display = 'block';
-    }
-
-    if (element) {
-        element.classList.add('active');
-        const pageTitle = document.getElementById('page-title');
-        if (pageTitle) {
-            pageTitle.innerText = element.innerText.trim();
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.style.display = 'block';
         }
+
+        if (element) {
+            element.classList.add('active');
+            const pageTitle = document.getElementById('page-title');
+            if (pageTitle) {
+                pageTitle.innerText = element.innerText.trim();
+            }
+        }
+    } catch (e) {
+        console.error("Error switching section:", e);
     }
 }
 
 function getStoredIncome() {
-    return JSON.parse(
-        localStorage.getItem('mPEP_income') || 
-        localStorage.getItem('financial_income') || 
-        '[]'
-    );
+    try {
+        return JSON.parse(
+            localStorage.getItem('mPEP_income') || 
+            localStorage.getItem('financial_income') || 
+            '[]'
+        );
+    } catch(e) { return []; }
 }
 
 function getStoredExpenses() {
-    return JSON.parse(
-        localStorage.getItem('mPEP_expenses') || 
-        localStorage.getItem('financial_expenses') || 
-        '[]'
-    );
+    try {
+        return JSON.parse(
+            localStorage.getItem('mPEP_expenses') || 
+            localStorage.getItem('financial_expenses') || 
+            '[]'
+        );
+    } catch(e) { return []; }
 }
 
 function generateReport(type) {
@@ -170,25 +182,25 @@ function generateReport(type) {
     const mapato = getStoredIncome();
     const matumizi = getStoredExpenses();
 
-    const totalIncome = mapato.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const totalExpenses = matumizi.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const totalIncome = mapato.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
+    const totalExpenses = matumizi.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
     const balance = totalIncome - totalExpenses;
 
     let titleText = "";
     let descText = "";
 
     if (type === 'mwezi') {
-        titleText = `Ripoti ya Mwezi: ${selectedMonth}`;
-        descText = `Tathmini ya utekelezaji wa malengo kwa mwezi wa <strong>${selectedMonth}</strong>.`;
+        titleText = "Ripoti ya Mwezi: " + selectedMonth;
+        descText = "Tathmini ya utekelezaji wa malengo kwa mwezi wa <strong>" + selectedMonth + "</strong>.";
     } else if (type === 'term1') {
-        titleText = `Ripoti ya Muhula wa Kwanza (Term 1)`;
-        descText = `Tathmini ya utekelezaji wa malengo kwa Muhula wa Kwanza.`;
+        titleText = "Ripoti ya Muhula wa Kwanza (Term 1)";
+        descText = "Tathmini ya utekelezaji wa malengo kwa Muhula wa Kwanza.";
     } else if (type === 'term2') {
-        titleText = `Ripoti ya Muhula wa Pili (Term 2)`;
-        descText = `Tathmini ya utekelezaji wa malengo kwa Muhula wa Pili.`;
+        titleText = "Ripoti ya Muhula wa Pili (Term 2)";
+        descText = "Tathmini ya utekelezaji wa malengo kwa Muhula wa Pili.";
     } else if (type === 'mwaka') {
-        titleText = `Ripoti ya Mwaka Mzima (2026)`;
-        descText = `Tathmini na muhtasari wa jumla wa utekelezaji wa malengo yote ya mwaka.`;
+        titleText = "Ripoti ya Mwaka Mzima (2026)";
+        descText = "Tathmini na muhtasari wa jumla wa utekelezaji wa malengo yote ya mwaka.";
     }
 
     reportBox.innerHTML = `
@@ -221,7 +233,7 @@ function downloadPDF() {
 
     const options = {
         margin:       10,
-        filename:     `Ripoti_ya_Malengo_${new Date().toISOString().slice(0,10)}.pdf`,
+        filename:     'Ripoti_ya_Malengo.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2 },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -234,8 +246,8 @@ function syncFinancialData() {
     const mapato = getStoredIncome();
     const matumizi = getStoredExpenses();
 
-    const totalIncome = mapato.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-    const totalExpenses = matumizi.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const totalIncome = mapato.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
+    const totalExpenses = matumizi.reduce(function(sum, item) { return sum + Number(item.amount || 0); }, 0);
     const balance = totalIncome - totalExpenses;
 
     const displayContainer = document.getElementById('financeDisplay');
