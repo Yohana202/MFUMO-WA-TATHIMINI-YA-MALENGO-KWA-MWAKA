@@ -6,10 +6,12 @@
     <title>Family Goals System</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
 <div class="app-container">
+    <!-- SIDEBAR NAVIGATION (MENYU ZOTE ZIMERUDI) -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <h2><i class="fa-solid fa-bullseye"></i> Family Goals</h2>
@@ -20,6 +22,15 @@
             </button>
             <button type="button" class="nav-item" onclick="switchSection('goals', this)">
                 <i class="fa-solid fa-list-check"></i> Malengo ya Mwaka
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('weekly-progress', this)">
+                <i class="fa-solid fa-calendar-week"></i> Progress ya Wiki
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('reports', this)">
+                <i class="fa-solid fa-file-contract"></i> Ripoti & Tathmini
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('finance-summary', this)">
+                <i class="fa-solid fa-wallet"></i> Taarifa za Fedha
             </button>
             <button type="button" class="nav-item" onclick="switchSection('backup-section', this)">
                 <i class="fa-solid fa-database"></i> Backup & Data
@@ -77,7 +88,56 @@
             </div>
         </section>
 
-        <!-- 3. BACKUP SECTION (MFUMO MPYA WA TEXT BACKUP) -->
+        <!-- 3. WEEKLY PROGRESS SECTION -->
+        <section id="weekly-progress" class="page-section" style="display: none;">
+            <div class="card">
+                <h3>Maendeleo ya Kila Wiki</h3>
+                <p>Ufuatiliaji wa maendeleo ya wiki utaonekana hapa.</p>
+            </div>
+        </section>
+
+        <!-- 4. RIPOTI & TATHMINI SECTION -->
+        <section id="reports" class="page-section" style="display: none;">
+            <div class="card">
+                <h3>Chagua Aina ya Ripoti</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <select id="monthSelect" class="form-control" style="padding: 8px;">
+                        <option value="Januari">Januari</option>
+                        <option value="Februari">Februari</option>
+                        <option value="Machi">Machi</option>
+                        <option value="Eproli">Eproli</option>
+                        <option value="Mei">Mei</option>
+                        <option value="Juni">Juni</option>
+                        <option value="Julai">Julai</option>
+                        <option value="Agosti">Agosti</option>
+                        <option value="Septemba">Septemba</option>
+                        <option value="Oktoba">Oktoba</option>
+                        <option value="Novemba">Novemba</option>
+                        <option value="Disemba">Disemba</option>
+                    </select>
+
+                    <button type="button" onclick="generateReport('mwezi')" class="btn btn-primary" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwezi</button>
+                    <button type="button" onclick="generateReport('mwaka')" class="btn btn-success" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwaka Mzima</button>
+                </div>
+
+                <div id="reportOutput" class="report-box" style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fafafa;">
+                    <h2>Ripoti ya Tathmini</h2>
+                    <p style="color: #64748b;">Chagua ripoti hapo juu ili kuonyesha taarifa.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. FINANCIAL SUMMARY SECTION -->
+        <section id="finance-summary" class="page-section" style="display: none;">
+            <div class="card">
+                <h3>Muhtasari wa Mfumo wa Fedha</h3>
+                <div id="financeDisplay">
+                    <p style="color: #64748b;">Ingiza au rudisha taarifa za fedha hapa.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. BACKUP SECTION (TEXT BACKUP MPYA) -->
         <section id="backup-section" class="page-section" style="display: none;">
             <div class="card">
                 <h3>Hifadhi na Rudisha Data (Backup)</h3>
@@ -188,7 +248,7 @@ function deleteGoal(index) {
     }
 }
 
-// TEXT BACKUP SYSTEM (SAFE FOR ALL MOBILE BROWSERS)
+// TEXT BACKUP SYSTEM
 function generateTextBackup() {
     const goals = localStorage.getItem('family_goals') || '[]';
     if (goals === '[]') {
