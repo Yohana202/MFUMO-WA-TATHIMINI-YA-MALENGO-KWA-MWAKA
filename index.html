@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Goals & Financial System</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- html2pdf Library kwa ajili ya Kupakua PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -89,18 +88,16 @@
                         <option value="Disemba">Disemba</option>
                     </select>
 
-                    <button onclick="generateReport('mwezi')" class="btn btn-primary">Ripoti ya Mwezi</button>
-                    <button onclick="generateReport('term1')" class="btn btn-info">Ripoti Term 1</button>
-                    <button onclick="generateReport('term2')" class="btn btn-info">Ripoti Term 2</button>
-                    <button onclick="generateReport('mwaka')" class="btn btn-success">Ripoti ya Mwaka Mzima</button>
+                    <button onclick="generateReport('mwezi')" class="btn btn-primary" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwezi</button>
+                    <button onclick="generateReport('term1')" class="btn btn-info" style="padding: 8px 15px; cursor: pointer;">Ripoti Term 1</button>
+                    <button onclick="generateReport('term2')" class="btn btn-info" style="padding: 8px 15px; cursor: pointer;">Ripoti Term 2</button>
+                    <button onclick="generateReport('mwaka')" class="btn btn-success" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwaka Mzima</button>
                     
-                    <!-- Kitufe cha PDF kinachofanya kazi -->
-                    <button onclick="downloadPDF()" class="btn btn-secondary" style="background-color: #4b5563; color: white;">
+                    <button onclick="downloadPDF()" class="btn btn-secondary" style="background-color: #4b5563; color: white; padding: 8px 15px; cursor: pointer;">
                         <i class="fa-solid fa-download"></i> Pakua PDF
                     </button>
                 </div>
 
-                <!-- Eneo ambalo Ripoti Inaonyeshwa na Kupakuliwa kama PDF -->
                 <div id="reportOutput" class="report-box" style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fafafa;">
                     <h2>Ripoti ya Tathmini</h2>
                     <p style="color: #64748b;">Chagua ripoti hapo juu ili kuonyesha taarifa na kuipakua.</p>
@@ -112,18 +109,146 @@
         <section id="finance-summary" class="page-section" style="display: none;">
             <div class="card">
                 <h3>Muhtasari wa Mfumo wa Fedha</h3>
-                <button onclick="syncFinancialData()" class="btn btn-primary" style="margin-bottom: 15px;">
+                <button onclick="syncFinancialData()" class="btn btn-primary" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">
                     <i class="fa-solid fa-rotate"></i> Vuta Data za Fedha
                 </button>
                 <div id="financeDisplay">
-                    <!-- Data za fedha zitaonyeshwa hapa -->
+                    <p style="color: #64748b;">Bonyeza kitufe hapo juu kuonyesha taarifa za fedha.</p>
                 </div>
             </div>
         </section>
     </main>
 </div>
 
-<script src="script.js"></script>
+<!-- JAVASCRIPT DIRECT IN HTML (NO EXTERNAL FILE NEEDED) -->
+<script>
+function switchSection(sectionId, element) {
+    const sections = document.querySelectorAll('.page-section');
+    sections.forEach(sec => sec.style.display = 'none');
 
+    const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
+
+    if (element) {
+        element.classList.add('active');
+        const pageTitle = document.getElementById('page-title');
+        if (pageTitle) {
+            pageTitle.innerText = element.innerText.trim();
+        }
+    }
+}
+
+function getStoredIncome() {
+    return JSON.parse(
+        localStorage.getItem('mPEP_income') || 
+        localStorage.getItem('financial_income') || 
+        '[]'
+    );
+}
+
+function getStoredExpenses() {
+    return JSON.parse(
+        localStorage.getItem('mPEP_expenses') || 
+        localStorage.getItem('financial_expenses') || 
+        '[]'
+    );
+}
+
+function generateReport(type) {
+    const reportBox = document.getElementById('reportOutput');
+    if (!reportBox) return;
+
+    const monthSelect = document.getElementById('monthSelect');
+    const selectedMonth = monthSelect ? monthSelect.value : 'Januari';
+    const dateToday = new Date().toLocaleDateString('sw-TZ');
+
+    const mapato = getStoredIncome();
+    const matumizi = getStoredExpenses();
+
+    const totalIncome = mapato.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const totalExpenses = matumizi.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const balance = totalIncome - totalExpenses;
+
+    let titleText = "";
+    let descText = "";
+
+    if (type === 'mwezi') {
+        titleText = `Ripoti ya Mwezi: ${selectedMonth}`;
+        descText = `Tathmini ya utekelezaji wa malengo kwa mwezi wa <strong>${selectedMonth}</strong>.`;
+    } else if (type === 'term1') {
+        titleText = `Ripoti ya Muhula wa Kwanza (Term 1)`;
+        descText = `Tathmini ya utekelezaji wa malengo kwa Muhula wa Kwanza.`;
+    } else if (type === 'term2') {
+        titleText = `Ripoti ya Muhula wa Pili (Term 2)`;
+        descText = `Tathmini ya utekelezaji wa malengo kwa Muhula wa Pili.`;
+    } else if (type === 'mwaka') {
+        titleText = `Ripoti ya Mwaka Mzima (2026)`;
+        descText = `Tathmini na muhtasari wa jumla wa utekelezaji wa malengo yote ya mwaka.`;
+    }
+
+    reportBox.innerHTML = `
+        <div style="font-family: Arial, sans-serif; color: #1e293b; background: #ffffff; padding: 20px; border-radius: 8px;">
+            <div style="border-bottom: 2px solid #2563eb; padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 style="color: #2563eb; margin: 0; font-size: 20px;">MFUMO WA MALENGO NA TATHMINI</h2>
+                <small style="color: #64748b;">Tarehe ya Ripoti: ${dateToday}</small>
+            </div>
+            
+            <h3 style="margin-top: 10px; color: #0f172a;">${titleText}</h3>
+            <p style="color: #334155;">${descText}</p>
+            
+            <div style="margin-top: 20px; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                <h4 style="margin-top: 0; color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Hali ya Fedha:</h4>
+                <p style="margin: 5px 0;"><strong>Jumla ya Mapato:</strong> <span style="color: #16a34a; font-weight: bold;">TZS ${totalIncome.toLocaleString()}</span></p>
+                <p style="margin: 5px 0;"><strong>Jumla ya Matumizi:</strong> <span style="color: #ef4444; font-weight: bold;">TZS ${totalExpenses.toLocaleString()}</span></p>
+                <p style="margin: 5px 0;"><strong>Salio Lililobaki:</strong> <span style="color: #2563eb; font-weight: bold;">TZS ${balance.toLocaleString()}</span></p>
+            </div>
+        </div>
+    `;
+}
+
+function downloadPDF() {
+    const reportElement = document.getElementById('reportOutput');
+
+    if (!reportElement || reportElement.innerText.includes("Chagua ripoti hapo juu")) {
+        alert("Tafadhali chagua aina ya ripoti kwanza (mfano: Ripoti ya Mwezi au Term 1) kabla ya kupakua PDF!");
+        return;
+    }
+
+    const options = {
+        margin:       10,
+        filename:     `Ripoti_ya_Malengo_${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(options).from(reportElement).save();
+}
+
+function syncFinancialData() {
+    const mapato = getStoredIncome();
+    const matumizi = getStoredExpenses();
+
+    const totalIncome = mapato.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const totalExpenses = matumizi.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const balance = totalIncome - totalExpenses;
+
+    const displayContainer = document.getElementById('financeDisplay');
+    if (displayContainer) {
+        displayContainer.innerHTML = `
+            <div style="padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <p style="margin: 8px 0;"><strong>Jumla ya Mapato:</strong> <span style="color: #16a34a; font-weight: bold;">TZS ${totalIncome.toLocaleString()}</span></p>
+                <p style="margin: 8px 0;"><strong>Jumla ya Matumizi:</strong> <span style="color: #ef4444; font-weight: bold;">TZS ${totalExpenses.toLocaleString()}</span></p>
+                <p style="margin: 8px 0;"><strong>Salio Lililobaki:</strong> <span style="color: #2563eb; font-weight: bold;">TZS ${balance.toLocaleString()}</span></p>
+            </div>
+        `;
+    }
+}
+</script>
 </body>
 </html>
