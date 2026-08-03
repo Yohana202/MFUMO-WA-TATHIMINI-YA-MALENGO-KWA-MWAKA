@@ -37,11 +37,11 @@
 
     <!-- MAIN CONTENT AREA -->
     <main class="main-content">
-        <header class="top-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <header class="top-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div class="header-title">
                 <h1 id="page-title">Dashboard ya Malengo</h1>
             </div>
-            <!-- SEHEMU YA BACKUP ILI DATA ZISIPOTEE -->
+            <!-- BACKUP BUTTONS -->
             <div style="display: flex; gap: 8px;">
                 <button type="button" onclick="exportBackup()" class="btn" style="background: #16a34a; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
                     <i class="fa-solid fa-download"></i> Pakua Backup
@@ -67,9 +67,25 @@
             <div class="card" style="margin-bottom: 20px;">
                 <h3>Ongeza Lengo Jipya</h3>
                 <form id="goalForm" onsubmit="addGoal(event)" style="display: grid; gap: 10px; max-width: 500px; margin-top: 10px;">
-                    <input type="text" id="goalTitle" placeholder="Jina la Lengo (mf. Kununua kiwanja, Biashara)" required style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
-                    <textarea id="goalDesc" placeholder="Maelezo zaidi kuhusu lengo..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
-                    <button type="submit" class="btn btn-primary" style="padding: 10px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 5px;">
+                    
+                    <!-- AINA YA LENGO (KATEGORIA 6 HALISI) -->
+                    <label style="font-weight: bold; font-size: 14px;">Aina ya Lengo:</label>
+                    <select id="goalCategory" required style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: white;">
+                        <option value="1. Malengo ya Kiroho">🙏 1. Malengo ya Kiroho</option>
+                        <option value="2. Afya">💪 2. Afya</option>
+                        <option value="3. Kilimo">🌾 3. Kilimo</option>
+                        <option value="4. Mahusiano Mema">👨‍👩‍👧‍👦 4. Mahusiano Mema</option>
+                        <option value="5. Kazi">💼 5. Kazi</option>
+                        <option value="6. Uchumi">💰 6. Uchumi</option>
+                    </select>
+
+                    <label style="font-weight: bold; font-size: 14px;">Jina la Lengo:</label>
+                    <input type="text" id="goalTitle" placeholder="Mfano: Kuanzisha shamba, Kupanda daraja la kazi..." required style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                    
+                    <label style="font-weight: bold; font-size: 14px;">Maelezo ya Lengo:</label>
+                    <textarea id="goalDesc" placeholder="Maelezo zaidi ya hatua za kutimiza lengo hili..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+                    
+                    <button type="submit" class="btn btn-primary" style="padding: 10px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 5px; font-weight: bold;">
                         <i class="fa-solid fa-plus"></i> Hifadhi Lengo
                     </button>
                 </form>
@@ -163,36 +179,39 @@ function renderGoals() {
     if (!goalsList) return;
 
     if (goals.length === 0) {
-        goalsList.innerHTML = `<p style="color: #94a3b8;">Hakuna malengo yaliyohifadhiwa. Ongeza lengo au tumia kitufe cha 'Rudisha Backup' kama unayo Backup.</p>`;
+        goalsList.innerHTML = `<p style="color: #94a3b8;">Hakuna malengo yaliyohifadhiwa bado. Ongeza lengo jipya au tumia kitufe cha 'Rudisha Backup'.</p>`;
         if (dashboardSummary) dashboardSummary.innerHTML = `<p>Jumla ya Malengo: <strong>0</strong></p>`;
         return;
     }
 
     let html = '<ul style="list-style: none; padding: 0;">';
     goals.forEach((g, index) => {
+        const category = g.category || 'Kategoria Haikutajwa';
         html += `
-            <li style="background: #f8fafc; padding: 12px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #2563eb; display: flex; justify-content: space-between; align-items: center;">
+            <li style="background: #f8fafc; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid #2563eb; display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <strong>${g.title}</strong>
-                    ${g.desc ? `<p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px;">${g.desc}</p>` : ''}
+                    <span style="background: #e0e7ff; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${category}</span>
+                    <h4 style="margin: 5px 0 2px 0; color: #0f172a;">${g.title}</h4>
+                    ${g.desc ? `<p style="margin: 2px 0 0 0; color: #64748b; font-size: 14px;">${g.desc}</p>` : ''}
                 </div>
-                <button onclick="deleteGoal(${index})" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                <button onclick="deleteGoal(${index})" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
             </li>
         `;
     });
     html += '</ul>';
 
     goalsList.innerHTML = html;
-    if (dashboardSummary) dashboardSummary.innerHTML = `<p>Jumla ya Malengo: <strong style="color: #2563eb; font-size: 18px;">${goals.length}</strong></p>`;
+    if (dashboardSummary) dashboardSummary.innerHTML = `<p>Jumla ya Malengo Yako: <strong style="color: #2563eb; font-size: 18px;">${goals.length}</strong></p>`;
 }
 
 function addGoal(e) {
     e.preventDefault();
+    const category = document.getElementById('goalCategory').value;
     const title = document.getElementById('goalTitle').value;
     const desc = document.getElementById('goalDesc').value;
 
     let goals = getStoredGoals();
-    goals.push({ title: title, desc: desc, date: new Date().toLocaleDateString('sw-TZ') });
+    goals.push({ category: category, title: title, desc: desc, date: new Date().toLocaleDateString('sw-TZ') });
 
     localStorage.setItem('family_goals', JSON.stringify(goals));
     document.getElementById('goalTitle').value = '';
@@ -203,10 +222,12 @@ function addGoal(e) {
 }
 
 function deleteGoal(index) {
-    let goals = getStoredGoals();
-    goals.splice(index, 1);
-    localStorage.setItem('family_goals', JSON.stringify(goals));
-    renderGoals();
+    if(confirm('Je, una uhakika unataka kufuta lengo hili?')) {
+        let goals = getStoredGoals();
+        goals.splice(index, 1);
+        localStorage.setItem('family_goals', JSON.stringify(goals));
+        renderGoals();
+    }
 }
 
 // BACKUP SYSTEM
