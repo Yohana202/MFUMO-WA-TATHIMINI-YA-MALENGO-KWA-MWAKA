@@ -49,7 +49,8 @@
                 <button type="button" onclick="document.getElementById('importFile').click()" class="btn" style="background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
                     <i class="fa-solid fa-upload"></i> Rudisha Backup
                 </button>
-                <input type="file" id="importFile" onchange="importBackup(event)" style="display: none;" accept=".json">
+                <!-- HAPA NDIPO PALIPO REKEBISHWA ILI IFUNGUE FILES -->
+                <input type="file" id="importFile" onchange="importBackup(event)" style="display: none;" accept="*/*">
             </div>
         </header>
 
@@ -68,7 +69,7 @@
                 <h3>Ongeza Lengo Jipya</h3>
                 <form id="goalForm" onsubmit="addGoal(event)" style="display: grid; gap: 10px; max-width: 500px; margin-top: 10px;">
                     
-                    <!-- AINA YA LENGO (KATEGORIA 6 HALISI) -->
+                    <!-- AINA YA LENGO -->
                     <label style="font-weight: bold; font-size: 14px;">Aina ya Lengo:</label>
                     <select id="goalCategory" required style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: white;">
                         <option value="1. Malengo ya Kiroho">🙏 1. Malengo ya Kiroho</option>
