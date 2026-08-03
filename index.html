@@ -46,11 +46,10 @@
                 <button type="button" onclick="exportBackup()" class="btn" style="background: #16a34a; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
                     <i class="fa-solid fa-download"></i> Pakua Backup
                 </button>
-                <button type="button" onclick="document.getElementById('importFile').click()" class="btn" style="background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
+                <button type="button" onclick="openFilePicker()" class="btn" style="background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
                     <i class="fa-solid fa-upload"></i> Rudisha Backup
                 </button>
-                <!-- HAPA NDIPO PALIPO REKEBISHWA ILI IFUNGUE FILES -->
-                <input type="file" id="importFile" onchange="importBackup(event)" style="display: none;" accept="*/*">
+                <input type="file" id="importFile" onchange="importBackup(event)" style="display: none;">
             </div>
         </header>
 
@@ -69,7 +68,6 @@
                 <h3>Ongeza Lengo Jipya</h3>
                 <form id="goalForm" onsubmit="addGoal(event)" style="display: grid; gap: 10px; max-width: 500px; margin-top: 10px;">
                     
-                    <!-- AINA YA LENGO -->
                     <label style="font-weight: bold; font-size: 14px;">Aina ya Lengo:</label>
                     <select id="goalCategory" required style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: white;">
                         <option value="1. Malengo ya Kiroho">🙏 1. Malengo ya Kiroho</option>
@@ -231,18 +229,33 @@ function deleteGoal(index) {
     }
 }
 
-// BACKUP SYSTEM
+// FIXED BACKUP EXPORT FOR MOBILE BROWSERS
 function exportBackup() {
+    const goals = localStorage.getItem('family_goals');
+    if (!goals || goals === '[]') {
+        alert('Hakuna taarifa yoyote ya kupakua kwa sasa. Ongeza malengo kwanza!');
+        return;
+    }
+
     const data = {
-        family_goals: localStorage.getItem('family_goals') || '[]',
+        family_goals: goals,
         mPEP_income: localStorage.getItem('mPEP_income') || '[]',
         mPEP_expenses: localStorage.getItem('mPEP_expenses') || '[]'
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `Malengo_Backup_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `Malengo_Backup_${new Date().toISOString().slice(0,10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+// FIXED FILE PICKER FOR ANDROID
+function openFilePicker() {
+    const fileInput = document.getElementById('importFile');
+    fileInput.click();
 }
 
 function importBackup(event) {
