@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Goals & Financial System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-bullseye"></i> Family Goals</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <button type="button" class="nav-item active" onclick="switchSection('dashboard', this)">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('goals', this)">
+                <i class="fa-solid fa-list-check"></i> Malengo ya Mwaka
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('weekly-progress', this)">
+                <i class="fa-solid fa-calendar-week"></i> Progress ya Wiki
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('reports', this)">
+                <i class="fa-solid fa-file-contract"></i> Ripoti & Tathmini
+            </button>
+            <button type="button" class="nav-item" onclick="switchSection('finance-summary', this)">
+                <i class="fa-solid fa-wallet"></i> Taarifa za Fedha
+            </button>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+        <header class="top-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div class="header-title">
+                <h1 id="page-title">Dashboard ya Malengo</h1>
+            </div>
+            <!-- BACKUP BUTTONS -->
+            <div style="display: flex; gap: 8px;">
+                <button type="button" onclick="exportBackup()" class="btn" style="background: #16a34a; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
+                    <i class="fa-solid fa-download"></i> Pakua Backup
+                </button>
+                <button type="button" onclick="document.getElementById('importFile').click()" class="btn" style="background: #0284c7; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 13px;">
+                    <i class="fa-solid fa-upload"></i> Rudisha Backup
+                </button>
+                <input type="file" id="importFile" onchange="importBackup(event)" style="display: none;" accept=".json">
+            </div>
+        </header>
+
+        <!-- 1. DASHBOARD SECTION -->
+        <section id="dashboard" class="page-section" style="display: block;">
+            <div class="card">
+                <h3>Muhtasari wa Malengo</h3>
+                <p>Mwaka: <strong>2026</strong></p>
+                <div id="dashboardSummary" style="margin-top: 15px;"></div>
+            </div>
+        </section>
+
+        <!-- 2. MALENGO SECTION -->
+        <section id="goals" class="page-section" style="display: none;">
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>Ongeza Lengo Jipya</h3>
+                <form id="goalForm" onsubmit="addGoal(event)" style="display: grid; gap: 10px; max-width: 500px; margin-top: 10px;">
+                    
+                    <!-- AINA YA LENGO (KATEGORIA 6 HALISI) -->
+                    <label style="font-weight: bold; font-size: 14px;">Aina ya Lengo:</label>
+                    <select id="goalCategory" required style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: white;">
+                        <option value="1. Malengo ya Kiroho">🙏 1. Malengo ya Kiroho</option>
+                        <option value="2. Afya">💪 2. Afya</option>
+                        <option value="3. Kilimo">🌾 3. Kilimo</option>
+                        <option value="4. Mahusiano Mema">👨‍👩‍👧‍👦 4. Mahusiano Mema</option>
+                        <option value="5. Kazi">💼 5. Kazi</option>
+                        <option value="6. Uchumi">💰 6. Uchumi</option>
+                    </select>
+
+                    <label style="font-weight: bold; font-size: 14px;">Jina la Lengo:</label>
+                    <input type="text" id="goalTitle" placeholder="Mfano: Kuanzisha shamba, Kupanda daraja la kazi..." required style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                    
+                    <label style="font-weight: bold; font-size: 14px;">Maelezo ya Lengo:</label>
+                    <textarea id="goalDesc" placeholder="Maelezo zaidi ya hatua za kutimiza lengo hili..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+                    
+                    <button type="submit" class="btn btn-primary" style="padding: 10px; cursor: pointer; background: #2563eb; color: white; border: none; border-radius: 5px; font-weight: bold;">
+                        <i class="fa-solid fa-plus"></i> Hifadhi Lengo
+                    </button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Orodha ya Malengo Yako</h3>
+                <div id="goalsList" style="margin-top: 15px;"></div>
+            </div>
+        </section>
+
+        <!-- 3. WEEKLY PROGRESS SECTION -->
+        <section id="weekly-progress" class="page-section" style="display: none;">
+            <div class="card">
+                <h3>Maendeleo ya Kila Wiki</h3>
+                <p>Ufuatiliaji wa maendeleo ya wiki utaonekana hapa.</p>
+            </div>
+        </section>
+
+        <!-- 4. RIPOTI & TATHMINI SECTION -->
+        <section id="reports" class="page-section" style="display: none;">
+            <div class="card">
+                <h3>Chagua Aina ya Ripoti</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <select id="monthSelect" class="form-control" style="padding: 8px;">
+                        <option value="Januari">Januari</option>
+                        <option value="Februari">Februari</option>
+                        <option value="Machi">Machi</option>
+                        <option value="Eproli">Eproli</option>
+                        <option value="Mei">Mei</option>
+                        <option value="Juni">Juni</option>
+                        <option value="Julai">Julai</option>
+                        <option value="Agosti">Agosti</option>
+                        <option value="Septemba">Septemba</option>
+                        <option value="Oktoba">Oktoba</option>
+                        <option value="Novemba">Novemba</option>
+                        <option value="Disemba">Disemba</option>
+                    </select>
+
+                    <button type="button" onclick="generateReport('mwezi')" class="btn btn-primary" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwezi</button>
+                    <button type="button" onclick="generateReport('mwaka')" class="btn btn-success" style="padding: 8px 15px; cursor: pointer;">Ripoti ya Mwaka Mzima</button>
+                    <button type="button" onclick="downloadPDF()" class="btn btn-secondary" style="background-color: #4b5563; color: white; padding: 8px 15px; cursor: pointer;">
+                        <i class="fa-solid fa-download"></i> Pakua PDF
+                    </button>
+                </div>
+
+                <div id="reportOutput" class="report-box" style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fafafa;">
+                    <h2>Ripoti ya Tathmini</h2>
+                    <p style="color: #64748b;">Chagua ripoti hapo juu ili kuonyesha taarifa.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. FINANCIAL SUMMARY SECTION -->
+        <section id="finance-summary" class="page-section" style="display: none;">
+            <div class="card">
+                <h3>Muhtasari wa Mfumo wa Fedha</h3>
+                <div id="financeDisplay">
+                    <p style="color: #64748b;">Ingiza au rudisha taarifa za fedha hapa.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+function switchSection(sectionId, element) {
+    document.querySelectorAll('.page-section').forEach(sec => sec.style.display = 'none');
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => item.classList.remove('active'));
+
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) targetSection.style.display = 'block';
+
+    if (element) {
+        element.classList.add('active');
+        document.getElementById('page-title').innerText = element.innerText.trim();
+    }
+}
+
+function getStoredGoals() {
+    try {
+        return JSON.parse(localStorage.getItem('family_goals') || '[]');
+    } catch(e) { return []; }
+}
+
+function renderGoals() {
+    const goalsList = document.getElementById('goalsList');
+    const dashboardSummary = document.getElementById('dashboardSummary');
+    const goals = getStoredGoals();
+
+    if (!goalsList) return;
+
+    if (goals.length === 0) {
+        goalsList.innerHTML = `<p style="color: #94a3b8;">Hakuna malengo yaliyohifadhiwa bado. Ongeza lengo jipya au tumia kitufe cha 'Rudisha Backup'.</p>`;
+        if (dashboardSummary) dashboardSummary.innerHTML = `<p>Jumla ya Malengo: <strong>0</strong></p>`;
+        return;
+    }
+
+    let html = '<ul style="list-style: none; padding: 0;">';
+    goals.forEach((g, index) => {
+        const category = g.category || 'Kategoria Haikutajwa';
+        html += `
+            <li style="background: #f8fafc; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid #2563eb; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="background: #e0e7ff; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">${category}</span>
+                    <h4 style="margin: 5px 0 2px 0; color: #0f172a;">${g.title}</h4>
+                    ${g.desc ? `<p style="margin: 2px 0 0 0; color: #64748b; font-size: 14px;">${g.desc}</p>` : ''}
+                </div>
+                <button onclick="deleteGoal(${index})" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+            </li>
+        `;
+    });
+    html += '</ul>';
+
+    goalsList.innerHTML = html;
+    if (dashboardSummary) dashboardSummary.innerHTML = `<p>Jumla ya Malengo Yako: <strong style="color: #2563eb; font-size: 18px;">${goals.length}</strong></p>`;
+}
+
+function addGoal(e) {
+    e.preventDefault();
+    const category = document.getElementById('goalCategory').value;
+    const title = document.getElementById('goalTitle').value;
+    const desc = document.getElementById('goalDesc').value;
+
+    let goals = getStoredGoals();
+    goals.push({ category: category, title: title, desc: desc, date: new Date().toLocaleDateString('sw-TZ') });
+
+    localStorage.setItem('family_goals', JSON.stringify(goals));
+    document.getElementById('goalTitle').value = '';
+    document.getElementById('goalDesc').value = '';
+
+    renderGoals();
+    alert('Lengo limehifadhiwa kikamilifu!');
+}
+
+function deleteGoal(index) {
+    if(confirm('Je, una uhakika unataka kufuta lengo hili?')) {
+        let goals = getStoredGoals();
+        goals.splice(index, 1);
+        localStorage.setItem('family_goals', JSON.stringify(goals));
+        renderGoals();
+    }
+}
+
+// BACKUP SYSTEM
+function exportBackup() {
+    const data = {
+        family_goals: localStorage.getItem('family_goals') || '[]',
+        mPEP_income: localStorage.getItem('mPEP_income') || '[]',
+        mPEP_expenses: localStorage.getItem('mPEP_expenses') || '[]'
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Malengo_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+}
+
+function importBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.family_goals) localStorage.setItem('family_goals', data.family_goals);
+            if (data.mPEP_income) localStorage.setItem('mPEP_income', data.mPEP_income);
+            if (data.mPEP_expenses) localStorage.setItem('mPEP_expenses', data.mPEP_expenses);
+            
+            alert('Taarifa zako zote zimerudishwa kikamilifu!');
+            renderGoals();
+        } catch(err) {
+            alert('Faili hili halina mfumo sahihi wa Backup.');
+        }
+    };
+    reader.readAsText(file);
+}
+
+window.onload = function() {
+    renderGoals();
+};
+</script>
+</body>
+</html>
