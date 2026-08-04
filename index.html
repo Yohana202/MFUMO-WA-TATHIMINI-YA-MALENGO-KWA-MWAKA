@@ -3,34 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Goals & Financial System</title>
+    <title>Family Goals System</title>
+    <!-- Font Awesome Icons & jsPDF for PDF export -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f9; color: #333; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1, h2 { text-align: center; color: #1a365d; margin-bottom: 20px; }
-        .auth-section, .app-section { margin-bottom: 20px; }
-        .hidden { display: none !important; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #f0f4f8; color: #1e293b; padding-bottom: 40px; }
+        
+        /* Auth Screen */
+        .auth-container { max-width: 400px; margin: 50px auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .auth-container h2 { text-align: center; color: #0f172a; margin-bottom: 20px; font-size: 22px; }
+        
+        /* Navigation Header */
+        header { background-color: #0b192c; color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; color: #38bdf8; }
+        .user-info { font-size: 13px; display: flex; align-items: center; gap: 10px; }
+        .btn-logout { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+        /* Navigation Bar */
+        nav { background-color: #1e293b; display: flex; overflow-x: auto; }
+        nav button { background: none; border: none; color: #94a3b8; padding: 15px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: 0.2s; }
+        nav button.active { background-color: #0284c7; color: white; }
+
+        /* Main Content Area */
+        main { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Cards & Grids */
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #0f172a; margin-top: 5px; }
+        .stat-icon { font-size: 28px; }
+
+        /* Form elements */
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #2b6cb0; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        button:hover { background-color: #2c5282; }
-        .btn-danger { background-color: #e53e3e; }
-        .btn-danger:hover { background-color: #c53030; }
-        .card { background: #edf2f7; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid #2b6cb0; }
-        .card-title { font-weight: bold; font-size: 18px; color: #2d3748; }
-        .card-details { font-size: 14px; color: #718096; margin-top: 5px; }
-        .user-header { display: flex; justify: space-between; align-items: center; background: #ebf8ff; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; }
+        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #475569; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+        input:focus, select:focus { border-color: #0284c7; }
+        .btn-primary { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; }
+        .btn-primary:hover { background: #0369a1; }
+        .btn-pdf { background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 10px; }
+        .btn-pdf:hover { background: #059669; }
+        
+        .hidden { display: none !important; }
     </style>
-    
+
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Configuration yako
         const firebaseConfig = {
             apiKey: "AIzaSyDzMmcwSYRZg_kGXqixZqjQemAG7k4twIE",
             authDomain: "family-goals-system.firebaseapp.com",
@@ -40,36 +68,37 @@
             appId: "1:938650283930:web:ea4fb2e549d26d32c95423"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         let currentUser = null;
+        let isLogin = true;
+        let loadedGoals = [];
 
-        // Elements
-        const authSection = document.getElementById('authSection');
-        const appSection = document.getElementById('appSection');
-        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        // Auth elements
+        const authScreen = document.getElementById('authScreen');
+        const mainAppScreen = document.getElementById('mainAppScreen');
         const authForm = document.getElementById('authForm');
         const authTitle = document.getElementById('authTitle');
         const authBtn = document.getElementById('authBtn');
         const toggleAuthBtn = document.getElementById('toggleAuthBtn');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
         const logoutBtn = document.getElementById('logoutBtn');
-        const goalForm = document.getElementById('goalForm');
-        const goalsList = document.getElementById('goalsList');
 
-        let isLogin = true;
+        // Navigation elements
+        const navButtons = document.querySelectorAll('nav button');
+        const tabContents = document.querySelectorAll('.tab-content');
 
         // Toggle Login / Register
         toggleAuthBtn.addEventListener('click', () => {
             isLogin = !isLogin;
-            authTitle.innerText = isLogin ? "Ingia kwenye Mfumo (Login)" : "Sajili Akaunti Mpya";
+            authTitle.innerText = isLogin ? "Ingia kwenye Mfumo" : "Sajili Akaunti Mpya";
             authBtn.innerText = isLogin ? "Ingia" : "Tengeneza Akaunti";
             toggleAuthBtn.innerText = isLogin ? "Huna akaunti? Sajili hapa" : "Unayo akaunti? Ingia hapa";
         });
 
-        // Authentication Handler
+        // Auth Form Submit
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
@@ -81,140 +110,281 @@
                 } else {
                     await createUserWithEmailAndPassword(auth, email, password);
                 }
-            } catch (error) {
-                alert("Kosa: " + error.message);
+            } catch (err) {
+                alert("Kosa: " + err.message);
             }
         });
 
-        // Track Auth State
+        // Track Auth
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 userEmailDisplay.innerText = user.email;
-                authSection.classList.add('hidden');
-                appSection.classList.remove('hidden');
-                loadGoals();
+                authScreen.classList.add('hidden');
+                mainAppScreen.classList.remove('hidden');
+                loadDashboardData();
             } else {
                 currentUser = null;
-                authSection.classList.remove('hidden');
-                appSection.classList.add('hidden');
+                authScreen.classList.remove('hidden');
+                mainAppScreen.classList.add('hidden');
             }
         });
 
         // Logout
         logoutBtn.addEventListener('click', () => signOut(auth));
 
-        // Add Goal / Financial Record
-        goalForm.addEventListener('submit', async (e) => {
+        // Tab Switching Logic
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetTab = btn.getAttribute('data-tab');
+                navButtons.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+
+                btn.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // Add New Goal Form
+        const addGoalForm = document.getElementById('addGoalForm');
+        addGoalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('goalTitle').value;
-            const amount = document.getElementById('goalAmount').value;
             const category = document.getElementById('goalCategory').value;
+            const targetAmount = document.getElementById('goalAmount').value;
 
             try {
-                await addDoc(collection(db, "goals"), {
+                await addDoc(collection(db, "user_goals"), {
                     userId: currentUser.uid,
                     title: title,
-                    amount: Number(amount),
                     category: category,
+                    targetAmount: Number(targetAmount),
+                    completed: false,
                     createdAt: new Date().toISOString()
                 });
-                goalForm.reset();
-                loadGoals();
-            } catch (error) {
-                alert("Imeshindwa kuhifadhi: " + error.message);
+                addGoalForm.reset();
+                alert("Lengo limehifadhiwa mtandaoni!");
+                loadDashboardData();
+            } catch (err) {
+                alert("Imeshindwa kuhifadhi: " + err.message);
             }
         });
 
-        // Load Goals from Cloud Firestore
-        async function loadGoals() {
-            goalsList.innerHTML = "<p>Inapakia taarifa...</p>";
+        // Load Data from Cloud
+        async function loadDashboardData() {
             try {
-                const q = query(collection(db, "goals"), where("userId", "==", currentUser.uid));
+                const q = query(collection(db, "user_goals"), where("userId", "==", currentUser.uid));
                 const querySnapshot = await getDocs(q);
-                goalsList.innerHTML = "";
                 
-                if (querySnapshot.empty) {
-                    goalsList.innerHTML = "<p>Haujaweka lengo au kumbukumbu yoyote bado.</p>";
+                loadedGoals = [];
+                querySnapshot.forEach(doc => {
+                    loadedGoals.push(doc.data());
+                });
+
+                document.getElementById('totalGoalsCount').innerText = loadedGoals.length;
+
+                const goalsListDiv = document.getElementById('goalsListContainer');
+                goalsListDiv.innerHTML = "";
+
+                if (loadedGoals.length === 0) {
+                    goalsListDiv.innerHTML = "<p style='color:#64748b;'>Hujapanga lengo lolote bado.</p>";
                     return;
                 }
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
+                loadedGoals.forEach(data => {
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.innerHTML = `
-                        <div class="card-title">${data.title}</div>
-                        <div class="card-details">
-                            <strong>Aina:</strong> ${data.category} | 
-                            <strong>Kiasi:</strong> TZS ${data.amount.toLocaleString()}
-                        </div>
+                        <h4 style="color: #0f172a; margin-bottom: 5px;">${data.title}</h4>
+                        <p style="font-size: 13px; color: #64748b;">Aina: <strong>${data.category}</strong> | Bajeti: <strong>TZS ${Number(data.targetAmount).toLocaleString()}</strong></p>
                     `;
-                    goalsList.appendChild(card);
+                    goalsListDiv.appendChild(card);
                 });
-            } catch (error) {
-                goalsList.innerHTML = "<p style='color:red;'>Tatizo limetokea wakati wa kupakia taarifa.</p>";
+            } catch (err) {
+                console.error(err);
             }
         }
+
+        // PDF Generation Logic
+        window.generatePDF = function(reportType) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(18);
+            doc.text(`RIPOTI YA MALENGO (${reportType.toUpperCase()})`, 14, 20);
+            
+            doc.setFontSize(11);
+            doc.text(`Akaunti: ${currentUser ? currentUser.email : ''}`, 14, 28);
+            doc.text(`Tarehe ya Ripoti: ${new Date().toLocaleDateString('sw-TZ')}`, 14, 34);
+
+            const tableRows = [];
+            loadedGoals.forEach((goal, index) => {
+                tableRows.push([
+                    index + 1,
+                    goal.title,
+                    goal.category,
+                    `TZS ${Number(goal.targetAmount).toLocaleString()}`,
+                    new Date(goal.createdAt).toLocaleDateString('sw-TZ')
+                ]);
+            });
+
+            doc.autoTable({
+                startY: 42,
+                head: [['#', 'Jina la Lengo', 'Aina ya Lengo', 'Bajeti (TZS)', 'Tarehe']],
+                body: tableRows,
+                theme: 'striped',
+                headStyles: { fillColor: [2, 132, 199] }
+            });
+
+            doc.save(`Ripoti_ya_Malengo_${reportType}.pdf`);
+        };
     </script>
 </head>
 <body>
 
-    <div class="container">
-        <!-- SEHEMU YA LOGIN / REGISTER -->
-        <div id="authSection" class="auth-section">
-            <h1 id="authTitle">Ingia kwenye Mfumo (Login)</h1>
-            <form id="authForm">
-                <div class="form-group">
-                    <label for="email">Barua Pepe (Email):</label>
-                    <input type="email" id="email" required placeholder="mfano@gmail.com">
-                </div>
-                <div class="form-group">
-                    <label for="password">Nenosiri (Password):</label>
-                    <input type="password" id="password" required placeholder="******">
-                </div>
-                <button type="submit" id="authBtn">Ingia</button>
-            </form>
-            <button id="toggleAuthBtn" style="background: none; color: #2b6cb0; margin-top: 15px; font-weight: normal;">Huna akaunti? Sajili hapa</button>
-        </div>
+    <!-- AUTH SCREEN -->
+    <div id="authScreen" class="auth-container">
+        <h2 id="authTitle">Ingia kwenye Mfumo</h2>
+        <form id="authForm">
+            <div class="form-group">
+                <label>Barua Pepe (Email)</label>
+                <input type="email" id="email" required placeholder="mfano@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>Nenosiri (Password)</label>
+                <input type="password" id="password" required placeholder="******">
+            </div>
+            <button type="submit" id="authBtn" class="btn-primary">Ingia</button>
+        </form>
+        <button id="toggleAuthBtn" style="background:none; border:none; color:#0284c7; width:100%; margin-top:15px; cursor:pointer;">Huna akaunti? Sajili hapa</button>
+    </div>
 
-        <!-- SEHEMU YA MFUMO WA MALENGO NA FEDHA -->
-        <div id="appSection" class="app-section hidden">
-            <div class="user-header">
-                <span>Akaunti: <strong id="userEmailDisplay"></strong></span>
-                <button id="logoutBtn" class="btn-danger" style="width: auto; padding: 6px 15px;">Toka (Logout)</button>
+    <!-- MAIN APP SCREEN -->
+    <div id="mainAppScreen" class="hidden">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-bullseye"></i> Family Goals
+            </div>
+            <div class="user-info">
+                <span id="userEmailDisplay"></span>
+                <button id="logoutBtn" class="btn-logout">Toka</button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD NAVIGATION -->
+        <nav>
+            <button class="active" data-tab="tabDashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+            <button data-tab="tabMwaka"><i class="fa-solid fa-list-check"></i> Malengo ya Mwaka</button>
+            <button data-tab="tabWiki"><i class="fa-solid fa-calendar-week"></i> Progress ya Wiki</button>
+            <button data-tab="tabRipoti"><i class="fa-solid fa-file-pdf"></i> Tathmini & Ripoti PDF</button>
+        </nav>
+
+        <main>
+            <!-- TAB 1: DASHBOARD -->
+            <div id="tabDashboard" class="tab-content active">
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="font-size: 20px; color: #0f172a;">Dashboard ya Malengo</h2>
+                    <div>
+                        <span style="font-size: 13px; color: #64748b;">Mwaka: </span>
+                        <select style="width: auto; padding: 4px 10px;">
+                            <option>2026</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div>
+                            <div style="font-size: 13px; color: #64748b;">Jumla ya Malengo</div>
+                            <div class="stat-value" id="totalGoalsCount">0</div>
+                        </div>
+                        <i class="fa-solid fa-bullseye stat-icon" style="color: #0284c7;"></i>
+                    </div>
+
+                    <div class="stat-card">
+                        <div>
+                            <div style="font-size: 13px; color: #64748b;">Progress ya Mwaka</div>
+                            <div class="stat-value">0%</div>
+                        </div>
+                        <i class="fa-solid fa-chart-pie stat-icon" style="color: #10b981;"></i>
+                    </div>
+
+                    <div class="stat-card">
+                        <div>
+                            <div style="font-size: 13px; color: #64748b;">Progress Term 1 (Jan-Jun)</div>
+                            <div class="stat-value">0%</div>
+                        </div>
+                        <i class="fa-solid fa-calculator stat-icon" style="color: #f59e0b;"></i>
+                    </div>
+
+                    <div class="stat-card">
+                        <div>
+                            <div style="font-size: 13px; color: #64748b;">Progress Term 2 (Jul-Dis)</div>
+                            <div class="stat-value">0%</div>
+                        </div>
+                        <i class="fa-solid fa-percent stat-icon" style="color: #8b5cf6;"></i>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 15px; font-size: 16px; color: #0f172a;">Orodha ya Malengo Yako Mtandaoni</h3>
+                    <div id="goalsListContainer">
+                        <!-- Dynamic Cloud Goals -->
+                    </div>
+                </div>
             </div>
 
-            <h2>Mfumo wa Malengo na Akiba</h2>
-
-            <!-- FORM YA KUINGIZA DATA -->
-            <form id="goalForm" style="margin-bottom: 30px;">
-                <div class="form-group">
-                    <label for="goalTitle">Jina la Lengo / Akiba:</label>
-                    <input type="text" id="goalTitle" required placeholder="Mfano: Akiba ya Duka la Stationery">
+            <!-- TAB 2: MALENGO YA MWAKA -->
+            <div id="tabMwaka" class="tab-content">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px; color: #0f172a;">Sajili Lengo Jipya</h3>
+                    <form id="addGoalForm">
+                        <div class="form-group">
+                            <label>Jina la Lengo</label>
+                            <input type="text" id="goalTitle" placeholder="Mfano: Kusoma Biblia/Aya, Akiba ya Benki, Mazao ya Shamba" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Aina ya Lengo</label>
+                            <select id="goalCategory">
+                                <option value="Kiroho">1. Kiroho</option>
+                                <option value="Uchumi">2. Uchumi</option>
+                                <option value="Afya">3. Afya</option>
+                                <option value="Kazi">4. Kazi</option>
+                                <option value="Mahusiano Mema">5. Mahusiano Mema</option>
+                                <option value="Kilimo">6. Kilimo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Kiasi kinachohitajika au Bajeti (TZS)</label>
+                            <input type="number" id="goalAmount" placeholder="Weka kiasi cha mfano: 250000" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Hifadhi Lengo Kwenye Cloud</button>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="goalAmount">Kiasi cha Fedha (TZS):</label>
-                    <input type="number" id="goalAmount" required placeholder="250000">
-                </div>
-                <div class="form-group">
-                    <label for="goalCategory">Aina ya Kumbukumbu:</label>
-                    <select id="goalCategory">
-                        <option value="Lengo la Biashara">Lengo la Biashara</option>
-                        <option value="Akiba ya Benki">Akiba ya Benki</option>
-                        <option value="Matumizi ya Familia">Matumizi ya Familia</option>
-                    </select>
-                </div>
-                <button type="submit">Hifadhi Kwenye Cloud</button>
-            </form>
-
-            <hr style="margin-bottom: 20px;">
-
-            <h3>Orodha ya Malengo Yako Mtandaoni</h3>
-            <div id="goalsList" style="margin-top: 15px;">
-                <!-- Hapa Data Zitakaa -->
             </div>
-        </div>
+
+            <!-- TAB 3: PROGRESS YA WIKI -->
+            <div id="tabWiki" class="tab-content">
+                <div class="card">
+                    <h3>Progress ya Wiki</h3>
+                    <p style="margin-top: 10px; color: #64748b;">Sehemu hii inakusaidia kufuatilia utekelezaji wa malengo yako kila wiki.</p>
+                </div>
+            </div>
+
+            <!-- TAB 4: TATHMINI NA RIPOTI PDF -->
+            <div id="tabRipoti" class="tab-content">
+                <div class="card">
+                    <h3 style="color: #0f172a; margin-bottom: 10px;">Tathmini na Pakua Ripoti (PDF)</h3>
+                    <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Chagua aina ya ripoti unayotaka kuipakua kwenye kifaa yako kwa ajili ya kumbukumbu au tathmini:</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="btn-pdf" onclick="generatePDF('Mwezi')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Kila Mwezi (PDF)</button>
+                        <button class="btn-pdf" style="background: #0284c7;" onclick="generatePDF('Term')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Kila Term (PDF)</button>
+                        <button class="btn-pdf" style="background: #8b5cf6;" onclick="generatePDF('Mwaka')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Kila Mwaka (PDF)</button>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
 </body>
