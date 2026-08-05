@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Goals & Financial System</title>
-    <!-- Font Awesome Icons, Chart.js & jsPDF for PDF export -->
+    <!-- Font Awesome Icons, Chart.js, jsPDF & Canvas Confetti -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -227,7 +228,7 @@
         addWeeklyProgressForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const goalId = document.getElementById('weeklyGoalSelect').value;
-            const percent = document.getElementById('weeklyPercent').value;
+            const percent = Number(document.getElementById('weeklyPercent').value);
             const notes = document.getElementById('weeklyNotes').value;
 
             const selectedGoal = loadedGoals.find(g => g.id === goalId);
@@ -238,18 +239,31 @@
                     userId: currentUser.uid,
                     goalId: goalId,
                     goalTitle: selectedGoal ? selectedGoal.title : '',
-                    percent: Number(percent),
+                    percent: percent,
                     notes: notes,
                     createdAt: new Date().toISOString()
                 });
 
                 // Update percent kwenye Goal kuu
                 await updateDoc(doc(db, "user_goals", goalId), {
-                    progressPercent: Number(percent)
+                    progressPercent: percent,
+                    completed: percent === 100
                 });
 
                 addWeeklyProgressForm.reset();
-                alert("Tathmini ya wiki imesajiliwa kikamilifu!");
+                
+                // Mfumo utatoa sherehe (Confetti) Lengo linapofika 100%
+                if (percent === 100) {
+                    confetti({
+                        particleCount: 120,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                    alert(`🎉 Hongera sana! Umetimiza Lengo la "${selectedGoal ? selectedGoal.title : 'Lengo'}" kwa 100%!`);
+                } else {
+                    alert("Tathmini ya wiki imesajiliwa kikamilifu!");
+                }
+
                 loadAllData();
             } catch (err) {
                 alert("Kosa: " + err.message);
@@ -274,18 +288,28 @@
             await loadWeeklyProgressData();
         }
 
-        // Load Goals
+        // Load Goals & Compute Overall Percentage
         async function loadGoalsData() {
             try {
                 const q = query(collection(db, "user_goals"), where("userId", "==", currentUser.uid));
                 const querySnapshot = await getDocs(q);
                 
                 loadedGoals = [];
+                let totalPercentSum = 0;
+
                 querySnapshot.forEach(d => {
-                    loadedGoals.push({ id: d.id, ...d.data() });
+                    const item = d.data();
+                    loadedGoals.push({ id: d.id, ...item });
+                    totalPercentSum += (item.progressPercent || 0);
                 });
 
                 document.getElementById('totalGoalsCount').innerText = loadedGoals.length;
+
+                // Overall Progress Calculation
+                const overallAvg = loadedGoals.length > 0 ? Math.round(totalPercentSum / loadedGoals.length) : 0;
+                document.getElementById('overallGoalsPercentText').innerText = `${overallAvg}%`;
+                document.getElementById('overallGoalsProgressBar').style.width = `${overallAvg}%`;
+                document.getElementById('overallGoalsProgressBar').style.background = overallAvg >= 75 ? '#10b981' : (overallAvg >= 40 ? '#0284c7' : '#f59e0b');
 
                 const goalsListDiv = document.getElementById('goalsListContainer');
                 const weeklySelect = document.getElementById('weeklyGoalSelect');
@@ -309,7 +333,7 @@
                     card.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <div>
-                                <h4 style="color: #0f172a; margin-bottom: 5px;">${data.title}</h4>
+                                <h4 style="color: #0f172a; margin-bottom: 5px;">${data.title} ${pPercent === 100 ? '🎉 <span class="badge" style="background:#10b981; color:white;">Imekamilika</span>' : ''}</h4>
                                 <p style="font-size: 13px; color: #64748b;">
                                     Aina: <strong>${data.category}</strong> | 
                                     Mwaka: <span class="badge" style="background:#0284c7; color:white;">${data.year || '2026'}</span> | 
@@ -570,7 +594,7 @@
             }
         }
 
-        // PDF Generation Logic
+        // PDF Generation Logic (Financial Report)
         window.generatePDF = function(reportType) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -637,6 +661,38 @@
             });
 
             doc.save(`Ripoti_ya_Fedha_${reportType}_${selectedYear}.pdf`);
+        };
+
+        // PDF Generation Logic (Goals Summary Report)
+        window.generateGoalsPDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(16);
+            doc.text("RIPOTI YA TATHMINI YA MALENGO", 14, 20);
+            
+            doc.setFontSize(10);
+            doc.text(`Mtumiaji: ${currentUser ? currentUser.email : ''}`, 14, 28);
+            doc.text(`Tarehe ya Kupakua: ${new Date().toLocaleDateString('sw-TZ')}`, 14, 34);
+
+            const goalRows = loadedGoals.map((g, idx) => [
+                idx + 1,
+                g.title,
+                g.category,
+                g.year || '2026',
+                `TZS ${Number(g.targetAmount).toLocaleString()}`,
+                `${g.progressPercent || 0}%`
+            ]);
+
+            doc.autoTable({
+                startY: 40,
+                head: [['#', 'Jina la Lengo', 'Aina', 'Mwaka', 'Bajeti', 'Progress (%)']],
+                body: goalRows,
+                theme: 'striped',
+                headStyles: { fillColor: [139, 92, 246] }
+            });
+
+            doc.save(`Ripoti_ya_Malengo_${new Date().getFullYear()}.pdf`);
         };
     </script>
 </head>
@@ -718,6 +774,17 @@
                             <div class="stat-value" id="totalGoalsCount">0</div>
                         </div>
                         <i class="fa-solid fa-bullseye stat-icon" style="color: #8b5cf6;"></i>
+                    </div>
+                </div>
+
+                <!-- OVERALL GOALS PROGRESS CARD -->
+                <div class="card" style="margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 16px; color: #0f172a;"><i class="fa-solid fa-tasks" style="color: #0284c7;"></i> Kiwango cha Jumla cha Utekelezaji wa Malengo (Overall Goal Completion)</h3>
+                        <span id="overallGoalsPercentText" style="font-size: 18px; font-weight: bold; color: #0284c7;">0%</span>
+                    </div>
+                    <div class="progress-container" style="height: 16px; margin-top: 10px;">
+                        <div id="overallGoalsProgressBar" class="progress-bar" style="width: 0%;"></div>
                     </div>
                 </div>
 
@@ -925,9 +992,10 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <button class="btn-pdf" onclick="generatePDF('Mwezi')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Kila Mwezi (PDF)</button>
-                        <button class="btn-pdf" style="background: #0284c7;" onclick="generatePDF('Term')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Term (PDF)</button>
-                        <button class="btn-pdf" style="background: #8b5cf6;" onclick="generatePDF('Mwaka')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Mwaka (PDF)</button>
+                        <button class="btn-pdf" style="background: #8b5cf6;" onclick="generateGoalsPDF()"><i class="fa-solid fa-list-check"></i> Pakua Ripoti ya Malengo Yote (PDF)</button>
+                        <button class="btn-pdf" onclick="generatePDF('Mwezi')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Kila Mwezi ya Fedha (PDF)</button>
+                        <button class="btn-pdf" style="background: #0284c7;" onclick="generatePDF('Term')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Term ya Fedha (PDF)</button>
+                        <button class="btn-pdf" style="background: #059669;" onclick="generatePDF('Mwaka')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Mwaka ya Fedha (PDF)</button>
                     </div>
                 </div>
             </div>
