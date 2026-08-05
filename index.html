@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Goals & Financial System</title>
-    <!-- Font Awesome Icons & jsPDF for PDF export -->
+    <!-- Font Awesome Icons, Chart.js & jsPDF for PDF export -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -29,7 +30,7 @@
         nav button.active { background-color: #0284c7; color: white; }
 
         /* Main Content Area */
-        main { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+        main { max-width: 950px; margin: 20px auto; padding: 0 15px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
@@ -37,32 +38,43 @@
         .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
         .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; }
-        .stat-value { font-size: 20px; font-weight: bold; color: #0f172a; margin-top: 5px; }
-        .stat-icon { font-size: 28px; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 5px; }
+        .stat-icon { font-size: 26px; }
 
         /* Form elements */
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #475569; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-        input:focus, select:focus { border-color: #0284c7; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: #0284c7; }
         .btn-primary { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; }
         .btn-primary:hover { background: #0369a1; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .btn-edit { background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
         .btn-pdf { background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 10px; }
         .btn-pdf:hover { background: #059669; }
         
-        .transaction-item { border-bottom: 1px solid #e2e8f0; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .transaction-item { border-bottom: 1px solid #e2e8f0; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .transaction-item:last-child { border-bottom: none; }
         .income-text { color: #10b981; font-weight: bold; }
         .expense-text { color: #ef4444; font-weight: bold; }
 
+        /* Progress Bar UI */
+        .progress-container { background: #e2e8f0; border-radius: 10px; height: 12px; overflow: hidden; margin-top: 8px; }
+        .progress-bar { background: #0284c7; height: 100%; border-radius: 10px; transition: width 0.3s; }
+
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; background: #e2e8f0; color: #475569; }
         .hidden { display: none !important; }
+
+        /* Modal Edit Goal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; }
     </style>
 
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDzMmcwSYRZg_kGXqixZqjQemAG7k4twIE",
@@ -81,6 +93,8 @@
         let isLogin = true;
         let loadedGoals = [];
         let loadedTransactions = [];
+        let loadedWeeklyProgress = [];
+        let expenseChart = null;
 
         // Auth elements
         const authScreen = document.getElementById('authScreen');
@@ -157,6 +171,7 @@
             e.preventDefault();
             const title = document.getElementById('goalTitle').value;
             const category = document.getElementById('goalCategory').value;
+            const year = document.getElementById('goalYearSelect').value;
             const targetAmount = document.getElementById('goalAmount').value;
 
             try {
@@ -164,7 +179,9 @@
                     userId: currentUser.uid,
                     title: title,
                     category: category,
+                    year: year,
                     targetAmount: Number(targetAmount),
+                    progressPercent: 0,
                     completed: false,
                     createdAt: new Date().toISOString()
                 });
@@ -176,21 +193,26 @@
             }
         });
 
-        // Form Submit: Add Financial Transaction (Income / Expense)
+        // Form Submit: Add Financial Transaction
         const addFinanceForm = document.getElementById('addFinanceForm');
         addFinanceForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const type = document.getElementById('financeType').value;
+            const category = document.getElementById('expenseCategorySelect').value;
             const description = document.getElementById('financeDesc').value;
             const amount = document.getElementById('financeAmount').value;
+            const dateInput = document.getElementById('financeDate').value;
+
+            const transactionDate = dateInput ? new Date(dateInput).toISOString() : new Date().toISOString();
 
             try {
                 await addDoc(collection(db, "user_finances"), {
                     userId: currentUser.uid,
                     type: type, // 'Income' au 'Expense'
+                    category: type === 'Expense' ? category : 'Mapato',
                     description: description,
                     amount: Number(amount),
-                    createdAt: new Date().toISOString()
+                    createdAt: transactionDate
                 });
                 addFinanceForm.reset();
                 alert("Taarifa ya fedha imehifadhiwa mtandaoni!");
@@ -200,10 +222,56 @@
             }
         });
 
+        // Form Submit: Weekly Progress Assessment
+        const addWeeklyProgressForm = document.getElementById('addWeeklyProgressForm');
+        addWeeklyProgressForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const goalId = document.getElementById('weeklyGoalSelect').value;
+            const percent = document.getElementById('weeklyPercent').value;
+            const notes = document.getElementById('weeklyNotes').value;
+
+            const selectedGoal = loadedGoals.find(g => g.id === goalId);
+
+            try {
+                // Hifadhi kwenye Weekly Progress Collection
+                await addDoc(collection(db, "user_weekly_progress"), {
+                    userId: currentUser.uid,
+                    goalId: goalId,
+                    goalTitle: selectedGoal ? selectedGoal.title : '',
+                    percent: Number(percent),
+                    notes: notes,
+                    createdAt: new Date().toISOString()
+                });
+
+                // Update percent kwenye Goal kuu
+                await updateDoc(doc(db, "user_goals", goalId), {
+                    progressPercent: Number(percent)
+                });
+
+                addWeeklyProgressForm.reset();
+                alert("Tathmini ya wiki imesajiliwa kikamilifu!");
+                loadAllData();
+            } catch (err) {
+                alert("Kosa: " + err.message);
+            }
+        });
+
+        // Toggle Category Dropdown based on Finance Type
+        window.toggleFinanceCategory = function() {
+            const type = document.getElementById('financeType').value;
+            const catGroup = document.getElementById('expenseCategoryGroup');
+            if (type === 'Expense') {
+                catGroup.classList.remove('hidden');
+            } else {
+                catGroup.classList.add('hidden');
+            }
+        };
+
         // Load All Cloud Data
         async function loadAllData() {
             await loadGoalsData();
             await loadFinanceData();
+            await loadWeeklyProgressData();
         }
 
         // Load Goals
@@ -213,14 +281,17 @@
                 const querySnapshot = await getDocs(q);
                 
                 loadedGoals = [];
-                querySnapshot.forEach(doc => {
-                    loadedGoals.push(doc.data());
+                querySnapshot.forEach(d => {
+                    loadedGoals.push({ id: d.id, ...d.data() });
                 });
 
                 document.getElementById('totalGoalsCount').innerText = loadedGoals.length;
 
                 const goalsListDiv = document.getElementById('goalsListContainer');
+                const weeklySelect = document.getElementById('weeklyGoalSelect');
+
                 goalsListDiv.innerHTML = "";
+                weeklySelect.innerHTML = "<option value=''>Chagua Lengo...</option>";
 
                 if (loadedGoals.length === 0) {
                     goalsListDiv.innerHTML = "<p style='color:#64748b;'>Hujapanga lengo lolote bado.</p>";
@@ -228,11 +299,38 @@
                 }
 
                 loadedGoals.forEach(data => {
+                    // Fill weekly goal select dropdown
+                    weeklySelect.innerHTML += `<option value="${data.id}">${data.title} (${data.year || '2026'})</option>`;
+
+                    const pPercent = data.progressPercent || 0;
+
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.innerHTML = `
-                        <h4 style="color: #0f172a; margin-bottom: 5px;">${data.title}</h4>
-                        <p style="font-size: 13px; color: #64748b;">Aina: <strong>${data.category}</strong> | Bajeti: <strong>TZS ${Number(data.targetAmount).toLocaleString()}</strong></p>
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div>
+                                <h4 style="color: #0f172a; margin-bottom: 5px;">${data.title}</h4>
+                                <p style="font-size: 13px; color: #64748b;">
+                                    Aina: <strong>${data.category}</strong> | 
+                                    Mwaka: <span class="badge" style="background:#0284c7; color:white;">${data.year || '2026'}</span> | 
+                                    Bajeti: <strong>TZS ${Number(data.targetAmount).toLocaleString()}</strong>
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <button class="btn-edit" onclick="openEditGoalModal('${data.id}')"><i class="fa-solid fa-pen"></i> Badili</button>
+                                <button class="btn-danger" onclick="deleteGoal('${data.id}')"><i class="fa-solid fa-trash"></i> Futa</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #475569;">
+                                <span>Maendeleo (Progress):</span>
+                                <span>${pPercent}%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: ${pPercent}%; background: ${pPercent >= 75 ? '#10b981' : (pPercent >= 40 ? '#0284c7' : '#f59e0b')};"></div>
+                            </div>
+                        </div>
                     `;
                     goalsListDiv.appendChild(card);
                 });
@@ -241,7 +339,62 @@
             }
         }
 
-        // Load Finance Data (Mapato & Matumizi)
+        // Delete Goal
+        window.deleteGoal = async function(id) {
+            if (confirm("Je, una uhakika unataka kufuta lengo hili?")) {
+                try {
+                    await deleteDoc(doc(db, "user_goals", id));
+                    alert("Lengo limefutwa!");
+                    loadGoalsData();
+                } catch (err) {
+                    alert("Imeshindwa kufuta: " + err.message);
+                }
+            }
+        };
+
+        // Edit Goal Modal Open
+        window.openEditGoalModal = function(id) {
+            const goal = loadedGoals.find(g => g.id === id);
+            if (!goal) return;
+
+            document.getElementById('editGoalId').value = goal.id;
+            document.getElementById('editGoalTitle').value = goal.title;
+            document.getElementById('editGoalCategory').value = goal.category;
+            document.getElementById('editGoalYear').value = goal.year || '2026';
+            document.getElementById('editGoalAmount').value = goal.targetAmount;
+
+            document.getElementById('editGoalModal').classList.remove('hidden');
+        };
+
+        window.closeEditGoalModal = function() {
+            document.getElementById('editGoalModal').classList.add('hidden');
+        };
+
+        // Submit Edit Goal
+        document.getElementById('editGoalForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editGoalId').value;
+            const title = document.getElementById('editGoalTitle').value;
+            const category = document.getElementById('editGoalCategory').value;
+            const year = document.getElementById('editGoalYear').value;
+            const amount = document.getElementById('editGoalAmount').value;
+
+            try {
+                await updateDoc(doc(db, "user_goals", id), {
+                    title: title,
+                    category: category,
+                    year: year,
+                    targetAmount: Number(amount)
+                });
+                closeEditGoalModal();
+                alert("Lengo limehaririwa na kuhifadhiwa!");
+                loadGoalsData();
+            } catch (err) {
+                alert("Kosa: " + err.message);
+            }
+        });
+
+        // Load Finance Data
         async function loadFinanceData() {
             try {
                 const q = query(collection(db, "user_finances"), where("userId", "==", currentUser.uid));
@@ -251,14 +404,50 @@
                 let totalIncome = 0;
                 let totalExpense = 0;
 
-                querySnapshot.forEach(doc => {
-                    const item = doc.data();
-                    loadedTransactions.push(item);
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
+                const lastMonth = lastMonthDate.getMonth();
+                const lastMonthYear = lastMonthDate.getFullYear();
+
+                let curMonthIncome = 0;
+                let curMonthExpense = 0;
+                let lastMonthIncome = 0;
+                let lastMonthExpense = 0;
+
+                let categoryTotals = {
+                    'Akiba': 0,
+                    'Matumizi ya Nyumbani': 0,
+                    'Dharura': 0,
+                    'Chakula': 0,
+                    'Mengineyo': 0
+                };
+
+                querySnapshot.forEach(d => {
+                    const item = d.data();
+                    loadedTransactions.push({ id: d.id, ...item });
+
+                    const tDate = new Date(item.createdAt);
+                    const tMonth = tDate.getMonth();
+                    const tYear = tDate.getFullYear();
 
                     if (item.type === 'Income') {
                         totalIncome += item.amount;
+                        if (tMonth === currentMonth && tYear === currentYear) curMonthIncome += item.amount;
+                        if (tMonth === lastMonth && tYear === lastMonthYear) lastMonthIncome += item.amount;
                     } else if (item.type === 'Expense') {
                         totalExpense += item.amount;
+                        if (tMonth === currentMonth && tYear === currentYear) curMonthExpense += item.amount;
+                        if (tMonth === lastMonth && tYear === lastMonthYear) lastMonthExpense += item.amount;
+
+                        const cat = item.category || 'Mengineyo';
+                        if (categoryTotals[cat] !== undefined) {
+                            categoryTotals[cat] += item.amount;
+                        } else {
+                            categoryTotals['Mengineyo'] += item.amount;
+                        }
                     }
                 });
 
@@ -268,31 +457,112 @@
                 document.getElementById('totalExpenseText').innerText = `TZS ${totalExpense.toLocaleString()}`;
                 document.getElementById('netBalanceText').innerText = `TZS ${netBalance.toLocaleString()}`;
 
+                // Month Comparison Dashboard Values
+                document.getElementById('curMonthExpenseText').innerText = `TZS ${curMonthExpense.toLocaleString()}`;
+                document.getElementById('lastMonthExpenseText').innerText = `TZS ${lastMonthExpense.toLocaleString()}`;
+                document.getElementById('curMonthIncomeText').innerText = `TZS ${curMonthIncome.toLocaleString()}`;
+                document.getElementById('lastMonthIncomeText').innerText = `TZS ${lastMonthIncome.toLocaleString()}`;
+
                 const listContainer = document.getElementById('financeListContainer');
                 listContainer.innerHTML = "";
 
                 if (loadedTransactions.length === 0) {
                     listContainer.innerHTML = "<p style='color:#64748b;'>Hujafanya muamala wowote wa fedha bado.</p>";
+                } else {
+                    loadedTransactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                    loadedTransactions.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'transaction-item';
+                        const isIncome = item.type === 'Income';
+                        div.innerHTML = `
+                            <div>
+                                <strong>${item.description}</strong>
+                                <div style="font-size: 12px; color: #64748b;">
+                                    Tarehe: ${new Date(item.createdAt).toLocaleDateString('sw-TZ')} | 
+                                    Kundi: <span class="badge">${item.category || 'Mapato'}</span>
+                                </div>
+                            </div>
+                            <div class="${isIncome ? 'income-text' : 'expense-text'}">
+                                ${isIncome ? '+' : '-'} TZS ${Number(item.amount).toLocaleString()}
+                            </div>
+                        `;
+                        listContainer.appendChild(div);
+                    });
+                }
+
+                // Render Expense Pie / Bar Chart
+                renderExpenseChart(categoryTotals);
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Render Chart for Expenses
+        function renderExpenseChart(categoryTotals) {
+            const ctx = document.getElementById('expenseChartCanvas').getContext('2d');
+            const chartType = document.getElementById('chartTypeSelect').value;
+
+            if (expenseChart) expenseChart.destroy();
+
+            expenseChart = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: Object.keys(categoryTotals),
+                    datasets: [{
+                        label: 'Gharama za Matumizi (TZS)',
+                        data: Object.values(categoryTotals),
+                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444', '#f59e0b', '#8b5cf6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: chartType === 'pie' ? 'bottom' : 'top' }
+                    }
+                }
+            });
+        }
+
+        window.updateChartType = function() {
+            loadFinanceData();
+        };
+
+        // Load Weekly Progress Data
+        async function loadWeeklyProgressData() {
+            try {
+                const q = query(collection(db, "user_weekly_progress"), where("userId", "==", currentUser.uid));
+                const querySnapshot = await getDocs(q);
+
+                loadedWeeklyProgress = [];
+                querySnapshot.forEach(d => {
+                    loadedWeeklyProgress.push({ id: d.id, ...d.data() });
+                });
+
+                const container = document.getElementById('weeklyProgressListContainer');
+                container.innerHTML = "";
+
+                if (loadedWeeklyProgress.length === 0) {
+                    container.innerHTML = "<p style='color:#64748b;'>Hujafanya tathmini ya wiki bado.</p>";
                     return;
                 }
 
-                // Panga kulingana na tarehe (Mpya juu)
-                loadedTransactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                loadedWeeklyProgress.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-                loadedTransactions.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'transaction-item';
-                    const isIncome = item.type === 'Income';
-                    div.innerHTML = `
-                        <div>
-                            <strong>${item.description}</strong>
-                            <div style="font-size: 12px; color: #64748b;">${new Date(item.createdAt).toLocaleDateString('sw-TZ')}</div>
+                loadedWeeklyProgress.forEach(wp => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div style="display:flex; justify-between; align-items:center;">
+                            <h4 style="color:#0f172a;">${wp.goalTitle}</h4>
+                            <span class="badge" style="background:#0284c7; color:white; font-size:12px;">${wp.percent}% Completed</span>
                         </div>
-                        <div class="${isIncome ? 'income-text' : 'expense-text'}">
-                            ${isIncome ? '+' : '-'} TZS ${Number(item.amount).toLocaleString()}
-                        </div>
+                        <p style="font-size:13px; color:#475569; margin-top:8px;"><strong>Tathmini/Maelezo:</strong> ${wp.notes}</p>
+                        <div style="font-size:11px; color:#94a3b8; margin-top:5px;">Tarehe: ${new Date(wp.createdAt).toLocaleDateString('sw-TZ')}</div>
                     `;
-                    listContainer.appendChild(div);
+                    container.appendChild(card);
                 });
 
             } catch (err) {
@@ -305,16 +575,31 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
+            const selectedMonth = document.getElementById('reportMonthSelect').value;
+            const selectedYear = document.getElementById('reportYearSelect').value;
+
             doc.setFontSize(16);
             doc.text(`RIPOTI YA KIFEDHA NA MALENGO (${reportType.toUpperCase()})`, 14, 20);
             
             doc.setFontSize(10);
             doc.text(`Mtumiaji: ${currentUser ? currentUser.email : ''}`, 14, 28);
-            doc.text(`Tarehe ya Kupakua: ${new Date().toLocaleDateString('sw-TZ')}`, 14, 34);
+            doc.text(`Kipindi: Mwezi ${selectedMonth} / Mwaka ${selectedYear}`, 14, 34);
 
-            // Table 1: Financial Summary
-            const totalIncome = loadedTransactions.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
-            const totalExpense = loadedTransactions.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
+            // Filter transactions
+            let filteredTrans = loadedTransactions;
+            if (reportType === 'Mwezi') {
+                filteredTrans = loadedTransactions.filter(t => {
+                    const d = new Date(t.createdAt);
+                    return (d.getMonth() + 1) === Number(selectedMonth) && d.getFullYear() === Number(selectedYear);
+                });
+            } else if (reportType === 'Mwaka') {
+                filteredTrans = loadedTransactions.filter(t => {
+                    return new Date(t.createdAt).getFullYear() === Number(selectedYear);
+                });
+            }
+
+            const totalIncome = filteredTrans.filter(t => t.type === 'Income').reduce((sum, t) => sum + t.amount, 0);
+            const totalExpense = filteredTrans.filter(t => t.type === 'Expense').reduce((sum, t) => sum + t.amount, 0);
 
             doc.setFontSize(12);
             doc.text("Muhtasari wa Fedha", 14, 44);
@@ -331,10 +616,10 @@
                 headStyles: { fillColor: [2, 132, 199] }
             });
 
-            // Table 2: Detailed Transactions
-            const finRows = loadedTransactions.map((t, idx) => [
+            const finRows = filteredTrans.map((t, idx) => [
                 idx + 1,
                 t.description,
+                t.category || (t.type === 'Income' ? 'Mapato' : 'Mengineyo'),
                 t.type === 'Income' ? 'Pato (+)' : 'Matumizi (-)',
                 `TZS ${t.amount.toLocaleString()}`,
                 new Date(t.createdAt).toLocaleDateString('sw-TZ')
@@ -345,13 +630,13 @@
 
             doc.autoTable({
                 startY: doc.lastAutoTable.finalY + 16,
-                head: [['#', 'Maelezo', 'Aina', 'Kiasi (TZS)', 'Tarehe']],
+                head: [['#', 'Maelezo', 'Kundi', 'Aina', 'Kiasi (TZS)', 'Tarehe']],
                 body: finRows,
                 theme: 'striped',
                 headStyles: { fillColor: [16, 185, 129] }
             });
 
-            doc.save(`Ripoti_ya_Fedha_${reportType}.pdf`);
+            doc.save(`Ripoti_ya_Fedha_${reportType}_${selectedYear}.pdf`);
         };
     </script>
 </head>
@@ -399,13 +684,7 @@
             <!-- TAB 1: DASHBOARD -->
             <div id="tabDashboard" class="tab-content active">
                 <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="font-size: 20px; color: #0f172a;">Dashboard ya Malengo na Fedha</h2>
-                    <div>
-                        <span style="font-size: 13px; color: #64748b;">Mwaka: </span>
-                        <select style="width: auto; padding: 4px 10px;">
-                            <option>2026</option>
-                        </select>
-                    </div>
+                    <h2 style="font-size: 18px; color: #0f172a;">Dashboard ya Malengo na Fedha</h2>
                 </div>
 
                 <div class="stat-grid">
@@ -442,6 +721,43 @@
                     </div>
                 </div>
 
+                <!-- MONTH COMPARISON SECTION -->
+                <div class="card" style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 15px; font-size: 16px; color: #0f172a;"><i class="fa-solid fa-code-compare text-blue-600"></i> Ulinganifu wa Mwezi Uliopita vs Mwezi wa Sasa</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+                            <div style="font-size:12px; color:#64748b;">Matumizi Mwezi Uliopita</div>
+                            <div style="font-size:16px; font-weight:bold; color:#ef4444;" id="lastMonthExpenseText">TZS 0</div>
+                        </div>
+                        <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+                            <div style="font-size:12px; color:#64748b;">Matumizi Mwezi Huu</div>
+                            <div style="font-size:16px; font-weight:bold; color:#ef4444;" id="curMonthExpenseText">TZS 0</div>
+                        </div>
+                        <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+                            <div style="font-size:12px; color:#64748b;">Mapato Mwezi Uliopita</div>
+                            <div style="font-size:16px; font-weight:bold; color:#10b981;" id="lastMonthIncomeText">TZS 0</div>
+                        </div>
+                        <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+                            <div style="font-size:12px; color:#64748b;">Mapato Mwezi Huu</div>
+                            <div style="font-size:16px; font-weight:bold; color:#10b981;" id="curMonthIncomeText">TZS 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EXPENSE GRAPH ANALYTICS -->
+                <div class="card" style="margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="font-size: 16px; color: #0f172a;">Uchanganuzi wa Matumizi Kwa Graph</h3>
+                        <select id="chartTypeSelect" onchange="updateChartType()" style="width: auto; padding: 5px 10px;">
+                            <option value="pie">Pie Chart (Duhara)</option>
+                            <option value="bar">Bar Graph (Milingoti)</option>
+                        </select>
+                    </div>
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="expenseChartCanvas"></canvas>
+                    </div>
+                </div>
+
                 <div class="card" style="margin-top: 20px;">
                     <h3 style="margin-bottom: 15px; font-size: 16px; color: #0f172a;">Orodha ya Malengo Yako Mtandaoni</h3>
                     <div id="goalsListContainer">
@@ -457,9 +773,19 @@
                     <form id="addFinanceForm">
                         <div class="form-group">
                             <label>Aina ya Muamala</label>
-                            <select id="financeType">
+                            <select id="financeType" onchange="toggleFinanceCategory()">
                                 <option value="Income">Pato (+) / Mapato</option>
                                 <option value="Expense">Tumizio (-) / Matumizi</option>
+                            </select>
+                        </div>
+                        <div class="form-group hidden" id="expenseCategoryGroup">
+                            <label>Kundi la Matumizi</label>
+                            <select id="expenseCategorySelect">
+                                <option value="Akiba">1. Akiba</option>
+                                <option value="Matumizi ya Nyumbani">2. Matumizi ya Nyumbani</option>
+                                <option value="Dharura">3. Dharura</option>
+                                <option value="Chakula">4. Chakula</option>
+                                <option value="Mengineyo" selected>5. Mengineyo</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -469,6 +795,10 @@
                         <div class="form-group">
                             <label>Kiasi cha Fedha (TZS)</label>
                             <input type="number" id="financeAmount" placeholder="250000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tarehe ya Muamala</label>
+                            <input type="date" id="financeDate">
                         </div>
                         <button type="submit" class="btn-primary">Hifadhi Kwenye Cloud Database</button>
                     </form>
@@ -503,6 +833,20 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label>Mwaka wa Lengo (Multi-Year Support)</label>
+                            <select id="goalYearSelect">
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2027">2027</option>
+                                <option value="2028">2028</option>
+                                <option value="2029">2029</option>
+                                <option value="2030">2030</option>
+                                <option value="2035">2035 (MPS Goal)</option>
+                                <option value="2040">2040</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>Kiasi kinachohitajika au Bajeti (TZS)</label>
                             <input type="number" id="goalAmount" placeholder="Weka kiasi cha mfano: 250000" required>
                         </div>
@@ -514,8 +858,33 @@
             <!-- TAB 4: PROGRESS YA WIKI -->
             <div id="tabWiki" class="tab-content">
                 <div class="card">
-                    <h3>Progress ya Wiki</h3>
-                    <p style="margin-top: 10px; color: #64748b;">Sehemu hii inakusaidia kufuatilia utekelezaji wa malengo yako kila wiki.</p>
+                    <h3 style="color: #0f172a; margin-bottom: 10px;">Tathmini Progress ya Wiki kwa Asilimia (%)</h3>
+                    <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Chagua lengo mahsusi na uweke maendeleo yake ya wiki hii ili kujua wapi panahitaji nguvu zaidi.</p>
+                    
+                    <form id="addWeeklyProgressForm">
+                        <div class="form-group">
+                            <label>Chagua Lengo Mahsusi</label>
+                            <select id="weeklyGoalSelect" required>
+                                <option value="">Chagua Lengo...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Kiwango cha Maendeleo (%) (0 hadi 100)</label>
+                            <input type="number" id="weeklyPercent" min="0" max="100" placeholder="Mfano: 60" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Maelezo ya Tathmini (Nini kimefanyika / Changamoto)</label>
+                            <textarea id="weeklyNotes" rows="3" placeholder="Andika tathmini ya wiki hii..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Hifadhi Tathmini ya Wiki</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #0f172a; margin-bottom: 15px;">Historia ya Progress za Wiki</h3>
+                    <div id="weeklyProgressListContainer">
+                        <!-- Dynamic Weekly Progress -->
+                    </div>
                 </div>
             </div>
 
@@ -523,16 +892,90 @@
             <div id="tabRipoti" class="tab-content">
                 <div class="card">
                     <h3 style="color: #0f172a; margin-bottom: 10px;">Tathmini na Pakua Ripoti (PDF)</h3>
-                    <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Pakua ripoti kamili ya mapato, matumizi na malengo yako kwa ajili ya tathmini:</p>
+                    <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Chagua mwezi au mwaka kisha pakua ripoti ya kina:</p>
                     
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div>
+                            <label>Chagua Mwezi</label>
+                            <select id="reportMonthSelect">
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Machi</option>
+                                <option value="4">Aprili</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Julai</option>
+                                <option value="8" selected>Agosti</option>
+                                <option value="9">Septemba</option>
+                                <option value="10">Oktoba</option>
+                                <option value="11">Novemba</option>
+                                <option value="12">Desemba</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Chagua Mwaka</label>
+                            <select id="reportYearSelect">
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2027">2027</option>
+                                <option value="2030">2030</option>
+                                <option value="2035">2035</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <button class="btn-pdf" onclick="generatePDF('Mwezi')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Kila Mwezi (PDF)</button>
-                        <button class="btn-pdf" style="background: #0284c7;" onclick="generatePDF('Term')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Kila Term (PDF)</button>
-                        <button class="btn-pdf" style="background: #8b5cf6;" onclick="generatePDF('Mwaka')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Kila Mwaka (PDF)</button>
+                        <button class="btn-pdf" style="background: #0284c7;" onclick="generatePDF('Term')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Term (PDF)</button>
+                        <button class="btn-pdf" style="background: #8b5cf6;" onclick="generatePDF('Mwaka')"><i class="fa-solid fa-file-arrow-down"></i> Pakua Ripoti ya Mwaka (PDF)</button>
                     </div>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- MODAL FOR EDITING GOALS -->
+    <div id="editGoalModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px; color: #0f172a;">Hariri Lengo</h3>
+            <form id="editGoalForm">
+                <input type="hidden" id="editGoalId">
+                <div class="form-group">
+                    <label>Jina la Lengo</label>
+                    <input type="text" id="editGoalTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Aina ya Lengo</label>
+                    <select id="editGoalCategory">
+                        <option value="Kiroho">Kiroho</option>
+                        <option value="Uchumi">Uchumi</option>
+                        <option value="Afya">Afya</option>
+                        <option value="Kazi">Kazi</option>
+                        <option value="Mahusiano Mema">Mahusiano Mema</option>
+                        <option value="Kilimo">Kilimo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mwaka</label>
+                    <select id="editGoalYear">
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2030">2030</option>
+                        <option value="2035">2035</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Bajeti (TZS)</label>
+                    <input type="number" id="editGoalAmount" required>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-primary">Hifadhi Mabadiliko</button>
+                    <button type="button" class="btn-danger" style="width: 100%; font-size:14px; font-weight:bold;" onclick="closeEditGoalModal()">Ghairi</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 </body>
